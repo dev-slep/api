@@ -18,7 +18,7 @@ final class HealthControllerTest extends TestCase
         $check = self::createMock(HealthCheck::class);
         $check->expects(self::never())->method('check');
 
-        $response = new HealthController([$check])->live();
+        $response = (new HealthController([$check]))->live();
 
         self::assertSame(200, $response->getStatusCode());
         self::assertSame('{"status":"ok"}', $response->getContent());
@@ -26,7 +26,7 @@ final class HealthControllerTest extends TestCase
 
     public function testReadyIsOkWhenEveryCheckPasses(): void
     {
-        $response = new HealthController([$this->check('database', true), $this->check('messenger', true)])->ready();
+        $response = (new HealthController([$this->check('database', true), $this->check('messenger', true)]))->ready();
 
         self::assertSame(200, $response->getStatusCode());
         self::assertSame('{"status":"ok","checks":{"database":{"status":"ok"},"messenger":{"status":"ok"}}}', $response->getContent());
@@ -34,7 +34,7 @@ final class HealthControllerTest extends TestCase
 
     public function testReadyIs503AndListsTheFailedChecks(): void
     {
-        $response = new HealthController([$this->check('database', true), $this->check('messenger', false)])->ready();
+        $response = (new HealthController([$this->check('database', true), $this->check('messenger', false)]))->ready();
 
         self::assertSame(503, $response->getStatusCode());
         self::assertSame('{"status":"fail","checks":{"database":{"status":"ok"},"messenger":{"status":"fail"}}}', $response->getContent());
@@ -46,12 +46,12 @@ final class HealthControllerTest extends TestCase
         $second->method('name')->willReturn('second');
         $second->expects(self::once())->method('check')->willReturn(HealthResult::healthy());
 
-        new HealthController([$this->check('first', false), $second])->ready();
+        (new HealthController([$this->check('first', false), $second]))->ready();
     }
 
     public function testReadyWithoutChecksIsOk(): void
     {
-        $response = new HealthController([])->ready();
+        $response = (new HealthController([]))->ready();
 
         self::assertSame(200, $response->getStatusCode());
         self::assertSame('{"status":"ok","checks":{}}', $response->getContent());

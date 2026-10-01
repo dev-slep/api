@@ -49,7 +49,7 @@ final class DefaultScheduleTest extends TestCase
         $lockFactory = self::createMock(LockFactory::class);
         $lockFactory->expects(self::once())->method('createLock')->with('scheduler_default')->willReturn(self::createStub(SharedLockInterface::class));
 
-        new DefaultSchedule(self::createStub(CacheInterface::class), $lockFactory, [])->getSchedule();
+        (new DefaultSchedule(self::createStub(CacheInterface::class), $lockFactory, []))->getSchedule();
     }
 
     /**

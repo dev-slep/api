@@ -96,7 +96,7 @@ abstract class IntegrationTestCase extends WebTestCase
     {
         $document ??= OpenApiDocument::fromYamlFile(dirname(__DIR__, 2).'/openapi/openapi.yaml');
 
-        $violations = new OpenApiResponseValidator($document)->violations(
+        $violations = (new OpenApiResponseValidator($document))->violations(
             $method,
             $path,
             $response->getStatusCode(),

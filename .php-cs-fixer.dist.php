@@ -26,6 +26,7 @@ return (new PhpCsFixer\Config())
         '@Symfony:risky' => true,
         'declare_strict_types' => true,
         'final_class' => true,
+        'new_expression_parentheses' => ['use_parentheses' => true],
         'strict_param' => true,
         'ordered_imports' => ['sort_algorithm' => 'alpha'],
         'no_unused_imports' => true,

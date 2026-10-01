@@ -18,18 +18,18 @@ final class MoneyNormalizerTest extends TestCase
 {
     public function testNormalizesToAmountAndCurrency(): void
     {
-        self::assertSame(['amount' => 150000, 'currency' => 'RSD'], new MoneyNormalizer()->normalize(new Money(150000, new Currency('RSD'))));
+        self::assertSame(['amount' => 150000, 'currency' => 'RSD'], (new MoneyNormalizer())->normalize(new Money(150000, new Currency('RSD'))));
     }
 
     public function testNegativeAndZeroAmountsAreKept(): void
     {
-        self::assertSame(['amount' => 0, 'currency' => 'EUR'], new MoneyNormalizer()->normalize(new Money(0, new Currency('EUR'))));
-        self::assertSame(['amount' => -5, 'currency' => 'EUR'], new MoneyNormalizer()->normalize(new Money(-5, new Currency('EUR'))));
+        self::assertSame(['amount' => 0, 'currency' => 'EUR'], (new MoneyNormalizer())->normalize(new Money(0, new Currency('EUR'))));
+        self::assertSame(['amount' => -5, 'currency' => 'EUR'], (new MoneyNormalizer())->normalize(new Money(-5, new Currency('EUR'))));
     }
 
     public function testDenormalizesFromAmountAndCurrency(): void
     {
-        $money = new MoneyNormalizer()->denormalize(['amount' => 1500, 'currency' => 'RSD'], Money::class);
+        $money = (new MoneyNormalizer())->denormalize(['amount' => 1500, 'currency' => 'RSD'], Money::class);
 
         self::assertTrue($money->equals(new Money(1500, new Currency('RSD'))));
     }
@@ -39,7 +39,7 @@ final class MoneyNormalizerTest extends TestCase
     {
         $this->expectException(NotNormalizableValueException::class);
 
-        new MoneyNormalizer()->denormalize($data, Money::class);
+        (new MoneyNormalizer())->denormalize($data, Money::class);
     }
 
     /**

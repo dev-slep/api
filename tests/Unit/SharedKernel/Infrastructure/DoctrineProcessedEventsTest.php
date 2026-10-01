@@ -20,7 +20,7 @@ final class DoctrineProcessedEventsTest extends TestCase
             ->with(self::stringContains('FROM public.processed_event_fixture'), ['subscriber' => 'billing', 'eventId' => 'e1'])
             ->willReturn(1);
 
-        self::assertTrue(new FixtureProcessedEvents($connection)->wasProcessed('billing', 'e1'));
+        self::assertTrue((new FixtureProcessedEvents($connection))->wasProcessed('billing', 'e1'));
     }
 
     public function testWasProcessedIsFalseWhenNoRowExists(): void
@@ -28,7 +28,7 @@ final class DoctrineProcessedEventsTest extends TestCase
         $connection = self::createStub(Connection::class);
         $connection->method('fetchOne')->willReturn(false);
 
-        self::assertFalse(new FixtureProcessedEvents($connection)->wasProcessed('billing', 'e1'));
+        self::assertFalse((new FixtureProcessedEvents($connection))->wasProcessed('billing', 'e1'));
     }
 
     public function testMarkProcessedInsertsIdempotently(): void
@@ -38,6 +38,6 @@ final class DoctrineProcessedEventsTest extends TestCase
             ->with(self::stringContains('ON CONFLICT DO NOTHING'), ['subscriber' => 'billing', 'eventId' => 'e1'])
             ->willReturn(1);
 
-        new FixtureProcessedEvents($connection)->markProcessed('billing', 'e1');
+        (new FixtureProcessedEvents($connection))->markProcessed('billing', 'e1');
     }
 }

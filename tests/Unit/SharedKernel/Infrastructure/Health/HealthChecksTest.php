@@ -41,7 +41,7 @@ final class HealthChecksTest extends TestCase
         $connection = self::createStub(Connection::class);
         $connection->method('fetchOne')->willThrowException(new RuntimeException('connection refused'));
 
-        self::assertFalse(new DatabaseHealthCheck($connection)->check()->healthy);
+        self::assertFalse((new DatabaseHealthCheck($connection))->check()->healthy);
     }
 
     public function testMessengerCheckCountsTheTransportMessages(): void
@@ -60,11 +60,11 @@ final class HealthChecksTest extends TestCase
         $transport = self::createStub(CountableTransport::class);
         $transport->method('getMessageCount')->willThrowException(new RuntimeException('table missing'));
 
-        self::assertFalse(new MessengerTransportHealthCheck($transport)->check()->healthy);
+        self::assertFalse((new MessengerTransportHealthCheck($transport))->check()->healthy);
     }
 
     public function testMessengerCheckAcceptsTransportsThatCannotCountMessages(): void
     {
-        self::assertTrue(new MessengerTransportHealthCheck(self::createStub(TransportInterface::class))->check()->healthy);
+        self::assertTrue((new MessengerTransportHealthCheck(self::createStub(TransportInterface::class)))->check()->healthy);
     }
 }

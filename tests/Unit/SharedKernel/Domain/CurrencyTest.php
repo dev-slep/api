@@ -16,7 +16,7 @@ final class CurrencyTest extends TestCase
 {
     public function testHoldsTheCode(): void
     {
-        self::assertSame('RSD', new Currency('RSD')->code);
+        self::assertSame('RSD', (new Currency('RSD'))->code);
     }
 
     #[DataProvider('invalidCodes')]
@@ -50,7 +50,7 @@ final class CurrencyTest extends TestCase
 
     public function testEqualsComparesCodes(): void
     {
-        self::assertTrue(new Currency('RSD')->equals(new Currency('RSD')));
-        self::assertFalse(new Currency('RSD')->equals(new Currency('EUR')));
+        self::assertTrue((new Currency('RSD'))->equals(new Currency('RSD')));
+        self::assertFalse((new Currency('RSD'))->equals(new Currency('EUR')));
     }
 }

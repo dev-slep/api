@@ -31,7 +31,7 @@ final class BusesTest extends TestCase
         $inner = self::createMock(MessageBusInterface::class);
         $inner->expects(self::once())->method('dispatch')->with($command)->willReturn(new Envelope($command));
 
-        new MessengerCommandBus($inner)->dispatch($command);
+        (new MessengerCommandBus($inner))->dispatch($command);
     }
 
     public function testCommandBusRethrowsTheOriginalException(): void
@@ -42,7 +42,7 @@ final class BusesTest extends TestCase
         $inner->method('dispatch')->willThrowException(new HandlerFailedException(new Envelope($command), ['handler' => $original]));
 
         try {
-            new MessengerCommandBus($inner)->dispatch($command);
+            (new MessengerCommandBus($inner))->dispatch($command);
             self::fail('Expected the handler exception to be rethrown');
         } catch (Throwable $thrown) {
             self::assertSame($original, $thrown);
@@ -56,7 +56,7 @@ final class BusesTest extends TestCase
 
         $this->expectException(LogicException::class);
 
-        new MessengerCommandBus($inner)->dispatch(new RecordingCommand('x'));
+        (new MessengerCommandBus($inner))->dispatch(new RecordingCommand('x'));
     }
 
     public function testQueryBusReturnsTheHandlersResult(): void
@@ -65,7 +65,7 @@ final class BusesTest extends TestCase
         $inner = self::createStub(MessageBusInterface::class);
         $inner->method('dispatch')->willReturn(new Envelope($query, [new HandledStamp('Hello Ana', 'handler')]));
 
-        self::assertSame('Hello Ana', new MessengerQueryBus($inner)->ask($query));
+        self::assertSame('Hello Ana', (new MessengerQueryBus($inner))->ask($query));
     }
 
     public function testQueryBusReturnsNullWhenNothingHandledTheQuery(): void
@@ -74,7 +74,7 @@ final class BusesTest extends TestCase
         $inner = self::createStub(MessageBusInterface::class);
         $inner->method('dispatch')->willReturn(new Envelope($query));
 
-        self::assertNull(new MessengerQueryBus($inner)->ask($query));
+        self::assertNull((new MessengerQueryBus($inner))->ask($query));
     }
 
     public function testQueryBusRethrowsTheOriginalException(): void
@@ -85,7 +85,7 @@ final class BusesTest extends TestCase
         $inner->method('dispatch')->willThrowException(new HandlerFailedException(new Envelope($query), ['handler' => $original]));
 
         try {
-            new MessengerQueryBus($inner)->ask($query);
+            (new MessengerQueryBus($inner))->ask($query);
             self::fail('Expected the handler exception to be rethrown');
         } catch (Throwable $thrown) {
             self::assertSame($original, $thrown);
@@ -104,7 +104,7 @@ final class BusesTest extends TestCase
             return new Envelope($message);
         });
 
-        new MessengerEventBus($inner)->publish($first, $second);
+        (new MessengerEventBus($inner))->publish($first, $second);
 
         self::assertSame([$first, $second], $dispatched);
     }
@@ -114,6 +114,6 @@ final class BusesTest extends TestCase
         $inner = self::createMock(MessageBusInterface::class);
         $inner->expects(self::never())->method('dispatch');
 
-        new MessengerEventBus($inner)->publish();
+        (new MessengerEventBus($inner))->publish();
     }
 }

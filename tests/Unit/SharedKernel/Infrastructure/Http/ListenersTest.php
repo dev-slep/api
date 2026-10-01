@@ -52,7 +52,7 @@ final class ListenersTest extends TestCase
 
         $this->expectException(UnsupportedMediaTypeHttpException::class);
 
-        new JsonOnlyListener()->onRequest($this->requestEvent($request));
+        (new JsonOnlyListener())->onRequest($this->requestEvent($request));
     }
 
     /**
@@ -71,7 +71,7 @@ final class ListenersTest extends TestCase
     {
         $request = Request::create($uri, $method, server: null === $contentType ? [] : ['CONTENT_TYPE' => $contentType]);
 
-        new JsonOnlyListener()->onRequest($this->requestEvent($request));
+        (new JsonOnlyListener())->onRequest($this->requestEvent($request));
 
         $this->expectNotToPerformAssertions();
     }
@@ -92,7 +92,7 @@ final class ListenersTest extends TestCase
     {
         $request = Request::create('/api/v1/x', 'POST');
 
-        new JsonOnlyListener()->onRequest($this->requestEvent($request, HttpKernelInterface::SUB_REQUEST));
+        (new JsonOnlyListener())->onRequest($this->requestEvent($request, HttpKernelInterface::SUB_REQUEST));
 
         $this->expectNotToPerformAssertions();
     }

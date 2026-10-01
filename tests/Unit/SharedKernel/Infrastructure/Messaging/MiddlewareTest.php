@@ -34,7 +34,7 @@ final class MiddlewareTest extends TestCase
         $command = new RecordingCommand('x');
         $envelope = new Envelope($command);
 
-        $result = new AuditMiddleware($auditor)->handle($envelope, $this->stackReturning($envelope));
+        $result = (new AuditMiddleware($auditor))->handle($envelope, $this->stackReturning($envelope));
 
         self::assertSame($envelope, $result);
         self::assertCount(1, $auditor->entries);
@@ -49,7 +49,7 @@ final class MiddlewareTest extends TestCase
         $command = new RecordingCommand('x');
 
         try {
-            new AuditMiddleware($auditor)->handle(new Envelope($command), $this->stackThrowing($failure));
+            (new AuditMiddleware($auditor))->handle(new Envelope($command), $this->stackThrowing($failure));
             self::fail('Expected the failure to be rethrown');
         } catch (Throwable $thrown) {
             self::assertSame($failure, $thrown);
@@ -65,7 +65,7 @@ final class MiddlewareTest extends TestCase
         $auditor = new RecordingCommandAuditor();
         $envelope = new Envelope(new FixtureIntegrationEvent());
 
-        $result = new AuditMiddleware($auditor)->handle($envelope, $this->stackReturning($envelope));
+        $result = (new AuditMiddleware($auditor))->handle($envelope, $this->stackReturning($envelope));
 
         self::assertSame($envelope, $result);
         self::assertSame([], $auditor->entries);
@@ -86,7 +86,7 @@ final class MiddlewareTest extends TestCase
         $transaction = new NullTransaction();
         $envelope = new Envelope(new RecordingCommand('x'));
 
-        $result = new TransactionMiddleware($transaction)->handle($envelope, $this->stackReturning($envelope));
+        $result = (new TransactionMiddleware($transaction))->handle($envelope, $this->stackReturning($envelope));
 
         self::assertSame($envelope, $result);
         self::assertSame(1, $transaction->runs);
@@ -98,7 +98,7 @@ final class MiddlewareTest extends TestCase
 
         $this->expectExceptionObject($failure);
 
-        new TransactionMiddleware(new NullTransaction())->handle(new Envelope(new RecordingCommand('x')), $this->stackThrowing($failure));
+        (new TransactionMiddleware(new NullTransaction()))->handle(new Envelope(new RecordingCommand('x')), $this->stackThrowing($failure));
     }
 
     public function testDoctrineTransactionDelegatesToTheEntityManager(): void
@@ -110,7 +110,7 @@ final class MiddlewareTest extends TestCase
 
         $calls = 0;
 
-        $result = new DoctrineTransaction($entityManager)->run(static function () use (&$calls): int {
+        $result = (new DoctrineTransaction($entityManager))->run(static function () use (&$calls): int {
             return ++$calls;
         });
 

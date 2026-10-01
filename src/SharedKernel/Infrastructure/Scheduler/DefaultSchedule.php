@@ -32,7 +32,7 @@ final readonly class DefaultSchedule implements ScheduleProviderInterface
 
     public function getSchedule(): Schedule
     {
-        $schedule = new Schedule()
+        $schedule = (new Schedule())
             ->stateful($this->cache)
             ->processOnlyLastMissedRun(true)
             ->lock($this->lockFactory->createLock('scheduler_default'));

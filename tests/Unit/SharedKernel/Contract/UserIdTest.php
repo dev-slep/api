@@ -25,7 +25,7 @@ final class UserIdTest extends TestCase
 
     public function testNormalisesToLowercase(): void
     {
-        self::assertSame(self::UUID, new UserId(strtoupper(self::UUID))->toString());
+        self::assertSame(self::UUID, (new UserId(strtoupper(self::UUID)))->toString());
     }
 
     #[DataProvider('invalidValues')]
@@ -50,7 +50,7 @@ final class UserIdTest extends TestCase
 
     public function testEquals(): void
     {
-        self::assertTrue(new UserId(self::UUID)->equals(new UserId(strtoupper(self::UUID))));
-        self::assertFalse(new UserId(self::UUID)->equals(new UserId('0190a1b2-c3d4-7e5f-8a6b-1c2d3e4f5a6c')));
+        self::assertTrue((new UserId(self::UUID))->equals(new UserId(strtoupper(self::UUID))));
+        self::assertFalse((new UserId(self::UUID))->equals(new UserId('0190a1b2-c3d4-7e5f-8a6b-1c2d3e4f5a6c')));
     }
 }

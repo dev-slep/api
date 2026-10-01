@@ -70,7 +70,7 @@ final class IdempotentHandlingTest extends TestCase
     {
         $transaction = new NullTransaction();
 
-        new IdempotentHandling(new InMemoryProcessedEvents(), $transaction)->handle('billing', new FixtureIntegrationEvent(), static function (): void {
+        (new IdempotentHandling(new InMemoryProcessedEvents(), $transaction))->handle('billing', new FixtureIntegrationEvent(), static function (): void {
         });
 
         self::assertSame(1, $transaction->runs);

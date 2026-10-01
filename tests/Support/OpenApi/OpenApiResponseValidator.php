@@ -89,7 +89,7 @@ final readonly class OpenApiResponseValidator
         );
         $error = $this->validator->validate($data, self::DOCUMENT_ID.$pointer)->error();
 
-        return null === $error ? [] : $this->messages(new ErrorFormatter()->formatFlat($error));
+        return null === $error ? [] : $this->messages((new ErrorFormatter())->formatFlat($error));
     }
 
     private function matchPath(string $path): ?string

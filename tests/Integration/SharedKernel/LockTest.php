@@ -15,8 +15,8 @@ final class LockTest extends IntegrationTestCase
     public function testSecondConcurrentAcquisitionOnPostgresFails(): void
     {
         // Two factories = two database sessions, like two workers
-        $first = new LockFactory(StoreFactory::createStore(self::env('LOCK_DSN')))->createLock('scheduler-test', 30, false);
-        $second = new LockFactory(StoreFactory::createStore(self::env('LOCK_DSN')))->createLock('scheduler-test', 30, false);
+        $first = (new LockFactory(StoreFactory::createStore(self::env('LOCK_DSN'))))->createLock('scheduler-test', 30, false);
+        $second = (new LockFactory(StoreFactory::createStore(self::env('LOCK_DSN'))))->createLock('scheduler-test', 30, false);
 
         try {
             self::assertTrue($first->acquire());

@@ -44,7 +44,7 @@ final class CurrencyTest extends TestCase
 
     public function testEquals(): void
     {
-        self::assertTrue(new Currency('RSD')->equals(new Currency('RSD')));
-        self::assertFalse(new Currency('RSD')->equals(new Currency('EUR')));
+        self::assertTrue((new Currency('RSD'))->equals(new Currency('RSD')));
+        self::assertFalse((new Currency('RSD'))->equals(new Currency('EUR')));
     }
 }

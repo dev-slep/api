@@ -34,7 +34,7 @@ final class EntityIdTest extends TestCase
 
     public function testUppercaseInputIsNormalisedToLowercase(): void
     {
-        self::assertSame(self::UUID, new SomeId(strtoupper(self::UUID))->toString());
+        self::assertSame(self::UUID, (new SomeId(strtoupper(self::UUID)))->toString());
     }
 
     #[DataProvider('invalidValues')]

@@ -15,7 +15,7 @@ final class SystemClockTest extends TestCase
     public function testNowIsCurrentAndInUtc(): void
     {
         $before = new DateTimeImmutable();
-        $now = new SystemClock()->now();
+        $now = (new SystemClock())->now();
         $after = new DateTimeImmutable();
 
         self::assertSame('UTC', $now->getTimezone()->getName());

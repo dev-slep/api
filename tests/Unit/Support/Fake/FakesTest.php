@@ -44,6 +44,6 @@ final class FakesTest extends TestCase
 
         self::assertSame('01900000-0000-7000-8000-000000000001', $generator->generate());
         self::assertSame('01900000-0000-7000-8000-000000000002', $generator->generate());
-        self::assertSame('01900000-0000-7000-8000-000000000003', new FakeId($generator->generate())->toString());
+        self::assertSame('01900000-0000-7000-8000-000000000003', (new FakeId($generator->generate()))->toString());
     }
 }

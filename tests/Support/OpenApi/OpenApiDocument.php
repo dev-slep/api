@@ -70,7 +70,7 @@ final readonly class OpenApiDocument
             return [];
         }
 
-        $flat = new ErrorFormatter()->formatFlat($error);
+        $flat = (new ErrorFormatter())->formatFlat($error);
 
         $messages = [];
         foreach ($flat as $message) {
