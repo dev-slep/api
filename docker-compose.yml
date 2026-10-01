@@ -1,0 +1,98 @@
+name: slep
+
+services:
+  app:
+    build:
+      context: .
+      target: dev
+    ports:
+      - "8080:8080"
+    volumes:
+      - .:/app
+    environment:
+      XDEBUG_MODE: "off"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      wiremock:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
+      mailpit:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "supervisorctl", "status", "nginx", "php-fpm"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  postgres:
+    image: postgis/postgis:18-3.6
+    environment:
+      POSTGRES_DB: slep
+      POSTGRES_USER: slep
+      POSTGRES_PASSWORD: slep
+    volumes:
+      - postgres_data:/var/lib/postgresql
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U slep -d slep_test"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  wiremock:
+    image: wiremock/wiremock:latest
+    volumes:
+      - ./docker/wiremock/mappings:/home/wiremock/mappings:ro
+      - ./docker/wiremock/__files:/home/wiremock/__files:ro
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8080/__admin/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  mailpit:
+    image: axllent/mailpit:latest
+    ports:
+      - "8025:8025"
+    healthcheck:
+      test: ["CMD", "/mailpit", "readyz"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  minio:
+    # The minio/minio image is no longer published on Docker Hub or Quay; Chainguard's build is used instead.
+    image: cgr.dev/chainguard/minio:latest
+    command: ["server", "/data", "--console-address", ":9001"]
+    environment:
+      MINIO_ROOT_USER: slep
+      MINIO_ROOT_PASSWORD: slep-secret
+      MC_HOST_local: http://slep:slep-secret@localhost:9000
+    ports:
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  minio-init:
+    image: cgr.dev/chainguard/minio-client:latest
+    depends_on:
+      minio:
+        condition: service_healthy
+    environment:
+      MC_HOST_local: http://slep:slep-secret@minio:9000
+    # The image has no shell, so a single `mc` call creates both buckets.
+    command: ["mb", "--ignore-existing", "local/tow-request-photos", "local/tower-photos"]
+    restart: "no"
+
+volumes:
+  postgres_data:
+  minio_data:

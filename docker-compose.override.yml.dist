@@ -1,0 +1,15 @@
+# Copy to docker-compose.override.yml (git-ignored) and adjust.
+services:
+  app:
+    ports:
+      - "8080:8080"          # change the left side if 8080 is taken
+    environment:
+      XDEBUG_MODE: debug     # off | debug | develop,debug | coverage
+
+  postgres:
+    ports:
+      - "5432:5432"          # for local DB tools (user/password/db: slep)
+
+  mailpit:
+    ports:
+      - "8025:8025"

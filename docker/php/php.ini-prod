@@ -1,0 +1,14 @@
+memory_limit = 256M
+display_errors = Off
+log_errors = On
+error_reporting = E_ALL
+expose_php = Off
+date.timezone = UTC
+
+opcache.enable = 1
+opcache.enable_cli = 0
+opcache.validate_timestamps = 0
+opcache.memory_consumption = 192
+opcache.max_accelerated_files = 20000
+opcache.preload = /app/config/preload.php
+opcache.preload_user = app
