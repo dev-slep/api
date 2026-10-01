@@ -1,0 +1,106 @@
+parameters:
+    # One Postgres schema per module, plus the Messenger transport schema
+    app.database_schemas:
+        - authentication
+        - authorization
+        - audit
+        - subscription
+        - driver
+        - tower
+        - tow_request
+        - bidding
+        - job
+        - review
+        - penalty
+        - notification
+        - messenger
+
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+
+    App\SharedKernel\:
+        resource: '../../src/SharedKernel/'
+        # Value objects, events and DTOs are not services; ports are implemented in Infrastructure
+        exclude:
+            - '../../src/SharedKernel/Domain/'
+            - '../../src/SharedKernel/Contract/'
+            - '../../src/SharedKernel/Infrastructure/Persistence/Entity/'
+
+    # Ports declared in the (service-excluded) Domain layer
+    App\SharedKernel\Domain\Clock: '@App\SharedKernel\Infrastructure\Time\SystemClock'
+    App\SharedKernel\Domain\IdGenerator: '@App\SharedKernel\Infrastructure\Id\UuidV7IdGenerator'
+
+    App\SharedKernel\Infrastructure\Http\ProblemDetailsFactory:
+        arguments:
+            $typeBaseUri: '%env(PROBLEM_TYPE_BASE_URI)%'
+            $debug: '%kernel.debug%'
+
+    App\SharedKernel\Infrastructure\Http\LocaleListener:
+        arguments:
+            $enabledLocales: '%kernel.enabled_locales%'
+            $defaultLocale: '%kernel.default_locale%'
+
+    App\SharedKernel\Infrastructure\Persistence\DeclareSchemasListener:
+        arguments:
+            $schemas: '%app.database_schemas%'
+        # Runs after the Symfony schema listeners (Messenger, Lock, ...), which replace the schema instance
+        tags:
+            - { name: doctrine.event_listener, event: postGenerateSchema, connection: default, priority: -100 }
+
+when@test:
+    services:
+        _defaults:
+            autowire: true
+            autoconfigure: true
+
+        # Public so that application tests can swap them for fakes
+        App\SharedKernel\Domain\Clock:
+            alias: App\SharedKernel\Infrastructure\Time\SystemClock
+            public: true
+        App\SharedKernel\Domain\IdGenerator:
+            alias: App\SharedKernel\Infrastructure\Id\UuidV7IdGenerator
+            public: true
+        App\SharedKernel\Application\Transaction:
+            alias: App\SharedKernel\Infrastructure\Persistence\DoctrineTransaction
+            public: true
+        App\SharedKernel\Application\CommandAuditor:
+            alias: App\SharedKernel\Infrastructure\Messaging\NullCommandAuditor
+            public: true
+        App\SharedKernel\Application\CommandBus:
+            alias: App\SharedKernel\Infrastructure\Messaging\MessengerCommandBus
+            public: true
+        App\SharedKernel\Application\QueryBus:
+            alias: App\SharedKernel\Infrastructure\Messaging\MessengerQueryBus
+            public: true
+        App\SharedKernel\Application\EventBus:
+            alias: App\SharedKernel\Infrastructure\Messaging\MessengerEventBus
+            public: true
+
+        # Test-only messages and handlers (tests/Support/Fixtures)
+        App\Tests\Support\Fixtures\:
+            resource: '../../tests/Support/Fixtures/'
+            exclude:
+                - '../../tests/Support/Fixtures/Messaging/RecordingCommand.php'
+                - '../../tests/Support/Fixtures/Messaging/FailingCommand.php'
+                - '../../tests/Support/Fixtures/Messaging/FailingQuery.php'
+                - '../../tests/Support/Fixtures/Messaging/GreetQuery.php'
+                - '../../tests/Support/Fixtures/Messaging/FixtureIntegrationEvent.php'
+                - '../../tests/Support/Fixtures/Messaging/FixtureDomainException.php'
+                - '../../tests/Support/Fixtures/Outbox/FixtureHappened.php'
+                - '../../tests/Support/Fixtures/Outbox/FixtureAggregate.php'
+                - '../../tests/Support/Fixtures/Outbox/CreateFixtureCommand.php'
+                - '../../tests/Support/Fixtures/Http/FixtureProblemException.php'
+                - '../../tests/Support/Fixtures/Http/FixturePayload.php'
+        App\Tests\Support\Fixtures\Messaging\RecordedMessages:
+            public: true
+        App\SharedKernel\Infrastructure\Scheduler\DefaultSchedule:
+            public: true
+        App\Tests\Support\Fixtures\Outbox\FixtureProcessedEvents:
+            public: true
+        App\Tests\Support\Fixtures\Health\ToggleableHealthCheck:
+            public: true
+        App\Tests\Support\Fixtures\Messaging\FailingEventSubscriber:
+            tags:
+                - { name: messenger.message_handler, bus: event.bus }

@@ -1,0 +1,20 @@
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+
+    App\Tower\:
+        resource: '../../src/Tower/'
+        exclude:
+            - '../../src/Tower/Domain/Model/'
+            - '../../src/Tower/Domain/Event/'
+            - '../../src/Tower/Domain/Exception/'
+            - '../../src/Tower/Contract/Dto/'
+            - '../../src/Tower/Contract/Event/'
+            - '../../src/Tower/Infrastructure/Persistence/Entity/'
+
+when@test:
+    services:
+        _defaults:
+            autowire: true
+            autoconfigure: true

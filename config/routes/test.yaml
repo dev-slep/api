@@ -1,0 +1,5 @@
+when@test:
+    # Test-only controllers that raise every kind of error (tests/Support/Fixtures/Http)
+    fixtures_http:
+        resource: '../../tests/Support/Fixtures/Http/FixtureHttpController.php'
+        type: attribute

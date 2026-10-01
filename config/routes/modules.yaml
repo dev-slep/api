@@ -1,0 +1,51 @@
+authentication:
+    resource: '../../src/Authentication/Infrastructure/Http/Controller/'
+    type: attribute
+
+authorization:
+    resource: '../../src/Authorization/Infrastructure/Http/Controller/'
+    type: attribute
+
+audit:
+    resource: '../../src/Audit/Infrastructure/Http/Controller/'
+    type: attribute
+
+subscription:
+    resource: '../../src/Subscription/Infrastructure/Http/Controller/'
+    type: attribute
+
+driver:
+    resource: '../../src/Driver/Infrastructure/Http/Controller/'
+    type: attribute
+
+tower:
+    resource: '../../src/Tower/Infrastructure/Http/Controller/'
+    type: attribute
+
+tow_request:
+    resource: '../../src/TowRequest/Infrastructure/Http/Controller/'
+    type: attribute
+
+bidding:
+    resource: '../../src/Bidding/Infrastructure/Http/Controller/'
+    type: attribute
+
+job:
+    resource: '../../src/Job/Infrastructure/Http/Controller/'
+    type: attribute
+
+review:
+    resource: '../../src/Review/Infrastructure/Http/Controller/'
+    type: attribute
+
+penalty:
+    resource: '../../src/Penalty/Infrastructure/Http/Controller/'
+    type: attribute
+
+notification:
+    resource: '../../src/Notification/Infrastructure/Http/Controller/'
+    type: attribute
+
+shared_kernel:
+    resource: '../../src/SharedKernel/Infrastructure/Http/Controller/'
+    type: attribute

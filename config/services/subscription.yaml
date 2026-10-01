@@ -1,0 +1,20 @@
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+
+    App\Subscription\:
+        resource: '../../src/Subscription/'
+        exclude:
+            - '../../src/Subscription/Domain/Model/'
+            - '../../src/Subscription/Domain/Event/'
+            - '../../src/Subscription/Domain/Exception/'
+            - '../../src/Subscription/Contract/Dto/'
+            - '../../src/Subscription/Contract/Event/'
+            - '../../src/Subscription/Infrastructure/Persistence/Entity/'
+
+when@test:
+    services:
+        _defaults:
+            autowire: true
+            autoconfigure: true

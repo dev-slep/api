@@ -1,0 +1,54 @@
+openapi: 3.1.0
+info:
+  title: Fixture API
+  version: v1
+paths:
+  /api/v1/things/{id}:
+    get:
+      responses:
+        '200':
+          description: A thing
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Thing'
+        '404':
+          description: Not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '204':
+          description: No content
+  /api/v1/things:
+    post:
+      responses:
+        default:
+          description: Whatever
+          content:
+            application/json:
+              schema:
+                type: object
+components:
+  schemas:
+    Money:
+      type: object
+      required: [amount, currency]
+      properties:
+        amount: { type: integer }
+        currency: { type: string, pattern: '^[A-Z]{3}$' }
+      additionalProperties: false
+    Thing:
+      type: object
+      required: [id, price]
+      properties:
+        id: { type: string, format: uuid }
+        price: { $ref: '#/components/schemas/Money' }
+        note: { type: [string, 'null'] }
+    ProblemDetails:
+      type: object
+      required: [type, title, status]
+      properties:
+        type: { type: string }
+        title: { type: string }
+        status: { type: integer }

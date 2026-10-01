@@ -1,0 +1,20 @@
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+
+    App\Job\:
+        resource: '../../src/Job/'
+        exclude:
+            - '../../src/Job/Domain/Model/'
+            - '../../src/Job/Domain/Event/'
+            - '../../src/Job/Domain/Exception/'
+            - '../../src/Job/Contract/Dto/'
+            - '../../src/Job/Contract/Event/'
+            - '../../src/Job/Infrastructure/Persistence/Entity/'
+
+when@test:
+    services:
+        _defaults:
+            autowire: true
+            autoconfigure: true

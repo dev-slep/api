@@ -1,0 +1,20 @@
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+
+    App\Notification\:
+        resource: '../../src/Notification/'
+        exclude:
+            - '../../src/Notification/Domain/Model/'
+            - '../../src/Notification/Domain/Event/'
+            - '../../src/Notification/Domain/Exception/'
+            - '../../src/Notification/Contract/Dto/'
+            - '../../src/Notification/Contract/Event/'
+            - '../../src/Notification/Infrastructure/Persistence/Entity/'
+
+when@test:
+    services:
+        _defaults:
+            autowire: true
+            autoconfigure: true

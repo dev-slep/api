@@ -1,0 +1,20 @@
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+
+    App\Review\:
+        resource: '../../src/Review/'
+        exclude:
+            - '../../src/Review/Domain/Model/'
+            - '../../src/Review/Domain/Event/'
+            - '../../src/Review/Domain/Exception/'
+            - '../../src/Review/Contract/Dto/'
+            - '../../src/Review/Contract/Event/'
+            - '../../src/Review/Infrastructure/Persistence/Entity/'
+
+when@test:
+    services:
+        _defaults:
+            autowire: true
+            autoconfigure: true

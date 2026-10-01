@@ -1,0 +1,20 @@
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+
+    App\Authorization\:
+        resource: '../../src/Authorization/'
+        exclude:
+            - '../../src/Authorization/Domain/Model/'
+            - '../../src/Authorization/Domain/Event/'
+            - '../../src/Authorization/Domain/Exception/'
+            - '../../src/Authorization/Contract/Dto/'
+            - '../../src/Authorization/Contract/Event/'
+            - '../../src/Authorization/Infrastructure/Persistence/Entity/'
+
+when@test:
+    services:
+        _defaults:
+            autowire: true
+            autoconfigure: true

@@ -1,0 +1,20 @@
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+
+    App\Bidding\:
+        resource: '../../src/Bidding/'
+        exclude:
+            - '../../src/Bidding/Domain/Model/'
+            - '../../src/Bidding/Domain/Event/'
+            - '../../src/Bidding/Domain/Exception/'
+            - '../../src/Bidding/Contract/Dto/'
+            - '../../src/Bidding/Contract/Event/'
+            - '../../src/Bidding/Infrastructure/Persistence/Entity/'
+
+when@test:
+    services:
+        _defaults:
+            autowire: true
+            autoconfigure: true

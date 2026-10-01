@@ -1,0 +1,78 @@
+openapi: 3.1.0
+info:
+  title: 'Slep API'
+  description: 'Backend API of Slep. Errors are RFC 9457 problem details (application/problem+json).'
+  version: v1
+servers:
+  -
+    url: /
+    description: 'Application root; every path already starts with /api/v1'
+paths: {}
+components:
+  schemas:
+    Money:
+      description: 'An amount in minor units of a currency.'
+      required:
+        - amount
+        - currency
+      properties:
+        amount:
+          description: 'Amount in minor units (e.g. para).'
+          type: integer
+          format: int64
+          example: 150000
+        currency:
+          description: 'ISO 4217 currency code.'
+          type: string
+          pattern: '^[A-Z]{3}$'
+          example: RSD
+      type: object
+    ProblemDetails:
+      description: 'RFC 9457 problem details.'
+      required:
+        - type
+        - title
+        - status
+      properties:
+        type:
+          type: string
+          format: uri
+          example: 'https://slep.example/problems/not-found'
+        title:
+          type: string
+          example: 'Resource not found'
+        status:
+          type: integer
+          example: 404
+        detail:
+          type: string
+        instance:
+          type: string
+          example: /api/v1/tow-requests/0190a1b2-c3d4-7e5f-8a6b-1c2d3e4f5a6b
+      type: object
+    ValidationProblem:
+      description: 'Problem details of a failed validation (422).'
+      allOf:
+        -
+          $ref: '#/components/schemas/ProblemDetails'
+        -
+          required:
+            - errors
+          properties:
+            errors:
+              type: array
+              items:
+                required:
+                  - field
+                  - message
+                properties:
+                  field: { type: string, example: price.amount }
+                  message: { type: string, example: 'This value should be positive.' }
+                type: object
+          type: object
+  securitySchemes:
+    bearerAuth:
+      type: http
+      bearerFormat: JWT
+      scheme: bearer
+

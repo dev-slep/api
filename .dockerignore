@@ -12,3 +12,4 @@ tools
 docker-compose*.yml
 Makefile
 *.md
+config/secrets/prod/prod.decrypt.private.php

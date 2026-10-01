@@ -1,0 +1,20 @@
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+
+    App\TowRequest\:
+        resource: '../../src/TowRequest/'
+        exclude:
+            - '../../src/TowRequest/Domain/Model/'
+            - '../../src/TowRequest/Domain/Event/'
+            - '../../src/TowRequest/Domain/Exception/'
+            - '../../src/TowRequest/Contract/Dto/'
+            - '../../src/TowRequest/Contract/Event/'
+            - '../../src/TowRequest/Infrastructure/Persistence/Entity/'
+
+when@test:
+    services:
+        _defaults:
+            autowire: true
+            autoconfigure: true

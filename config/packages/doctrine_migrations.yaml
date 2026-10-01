@@ -1,6 +1,23 @@
 doctrine_migrations:
     migrations_paths:
-        # namespace is arbitrary but should be different from App\Migrations
-        # as migrations classes should NOT be autoloaded
-        'DoctrineMigrations': '%kernel.project_dir%/migrations'
+        'Migrations\Authentication': '%kernel.project_dir%/migrations/Authentication'
+        'Migrations\Authorization': '%kernel.project_dir%/migrations/Authorization'
+        'Migrations\Audit': '%kernel.project_dir%/migrations/Audit'
+        'Migrations\Subscription': '%kernel.project_dir%/migrations/Subscription'
+        'Migrations\Driver': '%kernel.project_dir%/migrations/Driver'
+        'Migrations\Tower': '%kernel.project_dir%/migrations/Tower'
+        'Migrations\TowRequest': '%kernel.project_dir%/migrations/TowRequest'
+        'Migrations\Bidding': '%kernel.project_dir%/migrations/Bidding'
+        'Migrations\Job': '%kernel.project_dir%/migrations/Job'
+        'Migrations\Review': '%kernel.project_dir%/migrations/Review'
+        'Migrations\Penalty': '%kernel.project_dir%/migrations/Penalty'
+        'Migrations\Notification': '%kernel.project_dir%/migrations/Notification'
+        'Migrations\Messenger': '%kernel.project_dir%/migrations/Messenger'
     enable_profiler: false
+    organize_migrations: none
+    all_or_nothing: false
+    transactional: true
+    storage:
+        table_storage:
+            # One version table shared by all modules (created in the default schema, public)
+            table_name: 'doctrine_migration_versions'

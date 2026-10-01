@@ -2,6 +2,16 @@
 framework:
     secret: '%env(APP_SECRET)%'
 
+    # Serbian (Latin script) by default, English on request via Accept-Language
+    default_locale: sr_Latn
+    enabled_locales: ['sr_Latn', 'en']
+
+    # JSON conventions: camelCase properties, ISO 8601 dates in UTC ("2026-01-01T12:00:00Z")
+    serializer:
+        default_context:
+            datetime_format: 'Y-m-d\TH:i:sp'
+            datetime_timezone: UTC
+
     # Note that the session will be started ONLY if you read or write from it.
     session: true
 

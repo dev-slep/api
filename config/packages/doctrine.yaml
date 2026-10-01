@@ -1,31 +1,125 @@
 doctrine:
     dbal:
         url: '%env(resolve:DATABASE_URL)%'
-
-        # IMPORTANT: You MUST configure your server version,
-        # either here or in the DATABASE_URL env var (see .env file)
-        #server_version: '16'
-
+        # serverVersion is set in DATABASE_URL (see .env)
         profiling_collect_backtrace: '%kernel.debug%'
+
+        types:
+            geography:
+                class: 'Jsor\Doctrine\PostGIS\Types\GeographyType'
+            geometry:
+                class: 'Jsor\Doctrine\PostGIS\Types\GeometryType'
+
+        # PostGIS-owned objects must never show up in schema diffs
+        # (public.spatial_ref_sys, tiger.*, tiger_data.*, topology.*)
+        schema_filter: '~^(?!(public\.)?spatial_ref_sys$)(?!tiger\.)(?!tiger_data\.)(?!topology\.)~'
+
     orm:
+        # One XML mapping per module, in Infrastructure only; table names are schema-qualified
+        auto_mapping: false
         validate_xml_mapping: true
-        naming_strategy: doctrine.orm.naming_strategy.underscore
+        naming_strategy: doctrine.orm.naming_strategy.underscore_number_aware
+        mappings:
+            Authentication:
+                type: xml
+                is_bundle: false
+                dir: '%kernel.project_dir%/src/Authentication/Infrastructure/Persistence/Mapping'
+                prefix: 'App\Authentication\Infrastructure\Persistence\Entity'
+                alias: Authentication
+            Authorization:
+                type: xml
+                is_bundle: false
+                dir: '%kernel.project_dir%/src/Authorization/Infrastructure/Persistence/Mapping'
+                prefix: 'App\Authorization\Infrastructure\Persistence\Entity'
+                alias: Authorization
+            Audit:
+                type: xml
+                is_bundle: false
+                dir: '%kernel.project_dir%/src/Audit/Infrastructure/Persistence/Mapping'
+                prefix: 'App\Audit\Infrastructure\Persistence\Entity'
+                alias: Audit
+            Subscription:
+                type: xml
+                is_bundle: false
+                dir: '%kernel.project_dir%/src/Subscription/Infrastructure/Persistence/Mapping'
+                prefix: 'App\Subscription\Infrastructure\Persistence\Entity'
+                alias: Subscription
+            Driver:
+                type: xml
+                is_bundle: false
+                dir: '%kernel.project_dir%/src/Driver/Infrastructure/Persistence/Mapping'
+                prefix: 'App\Driver\Infrastructure\Persistence\Entity'
+                alias: Driver
+            Tower:
+                type: xml
+                is_bundle: false
+                dir: '%kernel.project_dir%/src/Tower/Infrastructure/Persistence/Mapping'
+                prefix: 'App\Tower\Infrastructure\Persistence\Entity'
+                alias: Tower
+            TowRequest:
+                type: xml
+                is_bundle: false
+                dir: '%kernel.project_dir%/src/TowRequest/Infrastructure/Persistence/Mapping'
+                prefix: 'App\TowRequest\Infrastructure\Persistence\Entity'
+                alias: TowRequest
+            Bidding:
+                type: xml
+                is_bundle: false
+                dir: '%kernel.project_dir%/src/Bidding/Infrastructure/Persistence/Mapping'
+                prefix: 'App\Bidding\Infrastructure\Persistence\Entity'
+                alias: Bidding
+            Job:
+                type: xml
+                is_bundle: false
+                dir: '%kernel.project_dir%/src/Job/Infrastructure/Persistence/Mapping'
+                prefix: 'App\Job\Infrastructure\Persistence\Entity'
+                alias: Job
+            Review:
+                type: xml
+                is_bundle: false
+                dir: '%kernel.project_dir%/src/Review/Infrastructure/Persistence/Mapping'
+                prefix: 'App\Review\Infrastructure\Persistence\Entity'
+                alias: Review
+            Penalty:
+                type: xml
+                is_bundle: false
+                dir: '%kernel.project_dir%/src/Penalty/Infrastructure/Persistence/Mapping'
+                prefix: 'App\Penalty\Infrastructure\Persistence\Entity'
+                alias: Penalty
+            Notification:
+                type: xml
+                is_bundle: false
+                dir: '%kernel.project_dir%/src/Notification/Infrastructure/Persistence/Mapping'
+                prefix: 'App\Notification\Infrastructure\Persistence\Entity'
+                alias: Notification
         identity_generation_preferences:
             Doctrine\DBAL\Platforms\PostgreSQLPlatform: identity
-        auto_mapping: true
-        mappings:
-            App:
-                type: attribute
-                is_bundle: false
-                dir: '%kernel.project_dir%/src/Entity'
-                prefix: 'App\Entity'
-                alias: App
-
-when@test:
-    doctrine:
-        dbal:
-            # "TEST_TOKEN" is typically set by ParaTest
-            dbname_suffix: '_test%env(default::TEST_TOKEN)%'
+        dql:
+            string_functions:
+                ST_Within: Jsor\Doctrine\PostGIS\Functions\ST_Within
+                ST_Contains: Jsor\Doctrine\PostGIS\Functions\ST_Contains
+                ST_Covers: Jsor\Doctrine\PostGIS\Functions\ST_Covers
+                ST_Intersects: Jsor\Doctrine\PostGIS\Functions\ST_Intersects
+                ST_DWithin: Jsor\Doctrine\PostGIS\Functions\ST_DWithin
+                ST_AsText: Jsor\Doctrine\PostGIS\Functions\ST_AsText
+                ST_AsGeoJSON: Jsor\Doctrine\PostGIS\Functions\ST_AsGeoJSON
+                ST_GeomFromText: Jsor\Doctrine\PostGIS\Functions\ST_GeomFromText
+                ST_GeogFromText: Jsor\Doctrine\PostGIS\Functions\ST_GeogFromText
+                ST_SetSRID: Jsor\Doctrine\PostGIS\Functions\ST_SetSRID
+                ST_MakePoint: Jsor\Doctrine\PostGIS\Functions\ST_MakePoint
+                ST_Point: Jsor\Doctrine\PostGIS\Functions\ST_Point
+                ST_Transform: Jsor\Doctrine\PostGIS\Functions\ST_Transform
+                ST_Buffer: Jsor\Doctrine\PostGIS\Functions\ST_Buffer
+                ST_Centroid: Jsor\Doctrine\PostGIS\Functions\ST_Centroid
+            numeric_functions:
+                ST_Distance: Jsor\Doctrine\PostGIS\Functions\ST_Distance
+                ST_DistanceSphere: Jsor\Doctrine\PostGIS\Functions\ST_DistanceSphere
+                ST_Area: Jsor\Doctrine\PostGIS\Functions\ST_Area
+                ST_Length: Jsor\Doctrine\PostGIS\Functions\ST_Length
+                ST_Perimeter: Jsor\Doctrine\PostGIS\Functions\ST_Perimeter
+                ST_SRID: Jsor\Doctrine\PostGIS\Functions\ST_SRID
+                ST_X: Jsor\Doctrine\PostGIS\Functions\ST_X
+                ST_Y: Jsor\Doctrine\PostGIS\Functions\ST_Y
 
 when@prod:
     doctrine:

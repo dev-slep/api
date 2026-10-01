@@ -1,0 +1,6 @@
+<?php
+
+declare(strict_types=1);
+// prod.encrypt.public on Thu, 01 Oct 2026 20:00:11 +0000
+
+return "\xA6\x86g\x03\xEF\xB0\x8A\xB1DX\x8C\xD5\x7CqT\x03v\x60\xE6Fi\xE2F\xD7_\x15\xA9\xF9\x8A\xA8\x3D\x7B";

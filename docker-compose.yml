@@ -23,7 +23,8 @@ services:
       mailpit:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "supervisorctl", "status", "nginx", "php-fpm"]
+      # nginx and php-fpm run; once dependencies are installed the app answers /health/live
+      test: ["CMD-SHELL", "supervisorctl status nginx php-fpm > /dev/null && { [ ! -f vendor/autoload.php ] || curl -fsS http://localhost:8080/health/live; }"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -34,6 +35,8 @@ services:
       POSTGRES_DB: slep
       POSTGRES_USER: slep
       POSTGRES_PASSWORD: slep
+    ports:
+      - "3307:5432"   # host access for local DB tools (user/password: slep, databases: slep, slep_test)
     volumes:
       - postgres_data:/var/lib/postgresql
       - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro

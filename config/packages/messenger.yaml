@@ -1,22 +1,65 @@
 framework:
     messenger:
-        # Uncomment this (and the failed transport below) to send failed messages to this transport for later handling.
-        # failure_transport: failed
+        failure_transport: failed
+        default_bus: command.bus
+
+        buses:
+            # Sync, one DB transaction per command: correlation -> audit -> transaction -> outbox
+            command.bus:
+                default_middleware:
+                    enabled: true
+                    allow_no_handlers: false
+                    allow_no_senders: true
+                middleware:
+                    - App\SharedKernel\Infrastructure\Correlation\CorrelationMiddleware
+                    - App\SharedKernel\Infrastructure\Messaging\AuditMiddleware
+                    - App\SharedKernel\Infrastructure\Messaging\TransactionMiddleware
+                    - App\SharedKernel\Infrastructure\Messaging\OutboxMiddleware
+            # Sync, read-only, no transaction
+            query.bus:
+                default_middleware:
+                    enabled: true
+                    allow_no_handlers: false
+                    allow_no_senders: true
+            # Integration events: routed to the async transport; subscribers are added by modules
+            event.bus:
+                default_middleware:
+                    enabled: true
+                    allow_no_handlers: true
+                    allow_no_senders: false
+                middleware:
+                    - App\SharedKernel\Infrastructure\Correlation\CorrelationMiddleware
 
         transports:
-            # https://symfony.com/doc/current/messenger.html#transport-configuration
-            # async: '%env(MESSENGER_TRANSPORT_DSN)%'
-            # failed: 'doctrine://default?queue_name=failed'
-            sync: 'sync://'
+            async:
+                dsn: '%env(MESSENGER_TRANSPORT_DSN)%'
+                options:
+                    table_name: messenger.messenger_messages
+                    queue_name: default
+                    auto_setup: false
+                    use_notify: false
+                retry_strategy:
+                    max_retries: 5
+                    delay: 1000
+                    multiplier: 3
+            failed:
+                dsn: '%env(MESSENGER_TRANSPORT_DSN)%'
+                options:
+                    table_name: messenger.messenger_messages
+                    queue_name: failed
+                    auto_setup: false
+                    use_notify: false
 
         routing:
-            # Route your messages to the transports
-            # 'App\Message\YourMessage': async
+            # Commands and queries are not routed: they are handled synchronously
+            'App\SharedKernel\Contract\IntegrationEvent': async
 
-# when@test:
-#    framework:
-#        messenger:
-#            transports:
-#                # replace with your transport name here (e.g., my_transport: 'in-memory://')
-#                # For more Messenger testing tools, see https://github.com/zenstruck/messenger-test
-#                async: 'in-memory://'
+when@test:
+    framework:
+        messenger:
+            transports:
+                async:
+                    retry_strategy:
+                        max_retries: 2
+                        delay: 1
+                        multiplier: 1

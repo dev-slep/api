@@ -1,0 +1,20 @@
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+
+    App\Audit\:
+        resource: '../../src/Audit/'
+        exclude:
+            - '../../src/Audit/Domain/Model/'
+            - '../../src/Audit/Domain/Event/'
+            - '../../src/Audit/Domain/Exception/'
+            - '../../src/Audit/Contract/Dto/'
+            - '../../src/Audit/Contract/Event/'
+            - '../../src/Audit/Infrastructure/Persistence/Entity/'
+
+when@test:
+    services:
+        _defaults:
+            autowire: true
+            autoconfigure: true

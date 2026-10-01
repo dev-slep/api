@@ -1,0 +1,9 @@
+# Twig is only used for the Swagger UI in dev (and its tests); the prod image does not ship it.
+when@dev:
+    twig:
+        file_name_pattern: '*.twig'
+
+when@test:
+    twig:
+        file_name_pattern: '*.twig'
+        strict_variables: true

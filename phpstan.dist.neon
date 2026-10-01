@@ -1,0 +1,14 @@
+# No baseline: every ignored error needs review (spec §13).
+parameters:
+    level: max
+    paths:
+        - src
+        - tests
+        - migrations
+    reportUnmatchedIgnoredErrors: true
+    checkMissingCallableSignature: true
+    symfony:
+        # Test container: it holds the test-only public services; `make phpstan` warms it first
+        containerXmlPath: var/cache/test/App_KernelTestDebugContainer.xml
+    doctrine:
+        objectManagerLoader: tests/object-manager.php

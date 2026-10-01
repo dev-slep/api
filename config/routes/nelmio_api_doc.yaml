@@ -1,0 +1,11 @@
+when@dev:
+    # Swagger UI and the raw document, in dev only: both are 404 in prod
+    app.swagger_ui:
+        path: /api/doc
+        methods: GET
+        defaults: { _controller: nelmio_api_doc.controller.swagger_ui }
+
+    app.swagger:
+        path: /api/doc.json
+        methods: GET
+        defaults: { _controller: nelmio_api_doc.controller.swagger }

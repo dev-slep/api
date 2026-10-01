@@ -1,53 +1,58 @@
 monolog:
-    channels: # To see all channels, run bin/console debug:autowiring logger
+    channels:
+        - app
+        - scheduler
         - deprecation # Deprecations are logged in the dedicated "deprecation" channel when it exists
+        # "messenger" and "security" are defined by their bundles
+
+# Every handler writes to php://stderr: PHP-FPM relays a worker's stderr to the container log
+# (php://stdout would end up in the HTTP response), and the CLI worker prints it to the container as well.
 
 when@dev:
     monolog:
         handlers:
             main:
                 type: stream
-                path: "%kernel.logs_dir%/%kernel.environment%.log"
+                path: php://stderr
                 level: debug
-                channels: ["!event"]
-            console:
-                type: console
-                process_psr_3_messages: false
-                channels: ["!event", "!doctrine", "!console"]
+                channels: ["!event", "!deprecation", "!doctrine"]
+                formatter: monolog.formatter.line
 
 when@test:
     monolog:
         handlers:
+            # Tests only write to var/log/test.log (JSON, so that tests can read the records back)
             main:
-                type: fingers_crossed
-                action_level: error
-                handler: nested
-                excluded_http_codes: [404, 405]
-                channels: ["!event"]
-            nested:
                 type: stream
-                path: "%kernel.logs_dir%/%kernel.environment%.log"
+                path: "%kernel.logs_dir%/test.log"
                 level: debug
+                channels: ["!event"]
+                formatter: monolog.formatter.json
 
 when@prod:
     monolog:
         handlers:
+            # Everything from info up, as one JSON object per line
             main:
+                type: stream
+                path: php://stderr
+                level: info
+                channels: ["!deprecation"]
+                formatter: monolog.formatter.json
+            # When an error happens, also emit the debug records that led to it (with the request context)
+            debug_before_error:
                 type: fingers_crossed
                 action_level: error
-                handler: nested
+                handler: debug_only
                 excluded_http_codes: [404, 405]
                 channels: ["!deprecation"]
                 buffer_size: 50 # How many messages should be saved? Prevent memory leaks
-            nested:
+            debug_only:
                 type: stream
                 path: php://stderr
                 level: debug
+                max_level: debug
                 formatter: monolog.formatter.json
-            console:
-                type: console
-                process_psr_3_messages: false
-                channels: ["!event", "!doctrine"]
             deprecation:
                 type: stream
                 channels: [deprecation]

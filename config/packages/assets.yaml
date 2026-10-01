@@ -1,0 +1,6 @@
+# symfony/asset is a dev dependency (Swagger UI), so assets are only configured outside prod
+when@dev: &assets
+    framework:
+        assets: ~
+
+when@test: *assets

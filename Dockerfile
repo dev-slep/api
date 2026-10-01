@@ -66,3 +66,6 @@ RUN composer install --no-dev --no-interaction --optimize-autoloader --classmap-
     && chown -R app:app var
 
 USER app
+
+HEALTHCHECK --interval=10s --timeout=3s --start-period=15s --retries=3 \
+    CMD curl -fsS http://localhost:8080/health/live || exit 1
