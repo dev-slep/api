@@ -167,7 +167,7 @@ final class ConsoleCommandsTest extends TestCase
 
     public function testTheCommandsAreNamedAsDocumented(): void
     {
-        self::assertSame('app:auth:create-admin', (new CreateAdminCommand($this->bus(null)))->getName());
-        self::assertSame('app:auth:purge-expired-tokens', (new PurgeExpiredTokensCommand($this->bus(null), new LockFactory(new InMemoryStore())))->getName());
+        self::assertSame('slep:auth:create-admin', (new CreateAdminCommand($this->bus(null)))->getName());
+        self::assertSame('slep:auth:purge-expired-tokens', (new PurgeExpiredTokensCommand($this->bus(null), new LockFactory(new InMemoryStore())))->getName());
     }
 }

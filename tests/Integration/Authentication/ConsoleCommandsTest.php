@@ -17,8 +17,8 @@ use Symfony\Component\Console\Tester\CommandTester;
 
 #[CoversClass(CreateAdminCommand::class)]
 #[CoversClass(PurgeExpiredTokensCommand::class)]
-#[CoversConsoleCommand('app:auth:create-admin')]
-#[CoversConsoleCommand('app:auth:purge-expired-tokens')]
+#[CoversConsoleCommand('slep:auth:create-admin')]
+#[CoversConsoleCommand('slep:auth:purge-expired-tokens')]
 final class ConsoleCommandsTest extends AuthenticationIntegrationTestCase
 {
     private function tester(string $name): CommandTester
@@ -29,13 +29,13 @@ final class ConsoleCommandsTest extends AuthenticationIntegrationTestCase
         return new CommandTester($application->find($name));
     }
 
-    // ---- app:auth:create-admin ----
+    // ---- slep:auth:create-admin ----
 
     public function testCreatingAnAdminSavesTheAccountAndPrintsTheEnrolment(): void
     {
         $clock = $this->freezeClock();
         $email = $this->uniqueEmail('admin');
-        $tester = $this->tester('app:auth:create-admin');
+        $tester = $this->tester('slep:auth:create-admin');
         $tester->setInputs(['a long admin passphrase']);
 
         $status = $tester->execute(['email' => strtoupper($email)]);
@@ -71,7 +71,7 @@ final class ConsoleCommandsTest extends AuthenticationIntegrationTestCase
         fwrite($stream, "a piped admin passphrase\n");
         rewind($stream);
         $application = new Application($this->client->getKernel());
-        $command = $application->find('app:auth:create-admin');
+        $command = $application->find('slep:auth:create-admin');
         $input = new \Symfony\Component\Console\Input\ArrayInput(['email' => $email, '--password-from-stdin' => true]);
         $input->setStream($stream);
 
@@ -84,11 +84,11 @@ final class ConsoleCommandsTest extends AuthenticationIntegrationTestCase
     public function testCreatingTheSameAdminTwiceFailsWithoutDuplicates(): void
     {
         $email = $this->uniqueEmail('admin');
-        $first = $this->tester('app:auth:create-admin');
+        $first = $this->tester('slep:auth:create-admin');
         $first->setInputs(['a long admin passphrase']);
         self::assertSame(0, $first->execute(['email' => $email]));
 
-        $second = $this->tester('app:auth:create-admin');
+        $second = $this->tester('slep:auth:create-admin');
         $second->setInputs(['a long admin passphrase']);
         $status = $second->execute(['email' => $email]);
 
@@ -99,12 +99,12 @@ final class ConsoleCommandsTest extends AuthenticationIntegrationTestCase
 
     public function testAWeakPasswordOrAnInvalidEmailIsRefused(): void
     {
-        $tester = $this->tester('app:auth:create-admin');
+        $tester = $this->tester('slep:auth:create-admin');
         $tester->setInputs(['short']);
         self::assertSame(1, $tester->execute(['email' => $this->uniqueEmail('admin')]));
         self::assertStringContainsString('at least 10 characters', $tester->getDisplay());
 
-        $invalid = $this->tester('app:auth:create-admin');
+        $invalid = $this->tester('slep:auth:create-admin');
         $invalid->setInputs(['a long admin passphrase']);
         self::assertSame(1, $invalid->execute(['email' => 'not an email']));
         self::assertSame(0, $this->countRows('authentication.user_account', "role = 'ADMIN'"));
@@ -112,7 +112,7 @@ final class ConsoleCommandsTest extends AuthenticationIntegrationTestCase
 
     public function testNoPasswordAtAllIsInvalidInput(): void
     {
-        $tester = $this->tester('app:auth:create-admin');
+        $tester = $this->tester('slep:auth:create-admin');
         $tester->setInputs(['']);
 
         self::assertSame(2, $tester->execute(['email' => $this->uniqueEmail('admin')]));
@@ -122,10 +122,10 @@ final class ConsoleCommandsTest extends AuthenticationIntegrationTestCase
     {
         $this->expectException(\Symfony\Component\Console\Exception\RuntimeException::class);
 
-        $this->tester('app:auth:create-admin')->execute([]);
+        $this->tester('slep:auth:create-admin')->execute([]);
     }
 
-    // ---- app:auth:purge-expired-tokens ----
+    // ---- slep:auth:purge-expired-tokens ----
 
     private function insertRefreshToken(string $label, string $expiresAt): void
     {
@@ -157,7 +157,7 @@ final class ConsoleCommandsTest extends AuthenticationIntegrationTestCase
         $this->insertRefreshToken('still valid', '2026-04-01T00:00:00+00:00');
         $this->insertOneTimeToken('reset long gone', '2026-01-02T00:00:00+00:00');
         $this->insertOneTimeToken('reset recent', '2026-02-28T00:00:00+00:00');
-        $tester = $this->tester('app:auth:purge-expired-tokens');
+        $tester = $this->tester('slep:auth:purge-expired-tokens');
 
         $status = $tester->execute([]);
 
@@ -172,11 +172,11 @@ final class ConsoleCommandsTest extends AuthenticationIntegrationTestCase
         $this->freezeClock('2026-03-01T00:00:00+00:00');
         $this->insertRefreshToken('long gone', '2026-01-01T00:00:00+00:00');
 
-        $first = $this->tester('app:auth:purge-expired-tokens');
+        $first = $this->tester('slep:auth:purge-expired-tokens');
         self::assertSame(0, $first->execute([]));
         self::assertStringContainsString('Deleted 1', $first->getDisplay());
 
-        $second = $this->tester('app:auth:purge-expired-tokens');
+        $second = $this->tester('slep:auth:purge-expired-tokens');
         self::assertSame(0, $second->execute([]));
         self::assertStringContainsString('Deleted 0', $second->getDisplay());
     }

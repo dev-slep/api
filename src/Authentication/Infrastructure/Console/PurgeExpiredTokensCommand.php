@@ -16,7 +16,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Lock\LockFactory;
 
-#[AsCommand(name: 'app:auth:purge-expired-tokens', description: 'Delete refresh, verification and reset tokens that expired long ago')]
+#[AsCommand(name: 'slep:auth:purge-expired-tokens', description: 'Delete refresh, verification and reset tokens that expired long ago')]
 final class PurgeExpiredTokensCommand extends Command
 {
     public function __construct(

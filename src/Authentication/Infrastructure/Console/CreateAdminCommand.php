@@ -25,7 +25,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\Question;
 use Throwable;
 
-#[AsCommand(name: 'app:auth:create-admin', description: 'Create an admin account and start its two-factor enrolment')]
+#[AsCommand(name: 'slep:auth:create-admin', description: 'Create an admin account and start its two-factor enrolment')]
 final class CreateAdminCommand extends Command
 {
     public function __construct(private readonly CommandBus $commandBus)

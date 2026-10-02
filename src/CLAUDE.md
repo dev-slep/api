@@ -17,6 +17,7 @@ Rules (Deptrac enforces them, `make deptrac`):
 - Infrastructure: own module, other modules' Contract, SharedKernel, vendor.
 - Modules talk through Contract interfaces and integration events, never through each other's internals.
 - Handlers implement `CommandHandler`/`QueryHandler` (no `#[AsMessageHandler]`: Application has no vendor code). Classes are `final`.
+- Console commands are named `slep:<module>:<action>` (for example `slep:auth:create-admin`); the `app:` prefix is not used.
 - Refusals that must leave a trace (failed login) are returned as results; thrown exceptions roll the transaction back.
 
 Quality gate for any change: `make qa` (cs, phpstan max, deptrac, test-policy, all suites). The test policy requires tests for every public method, endpoint, console command and contract method (see `tests/CLAUDE.md`).
