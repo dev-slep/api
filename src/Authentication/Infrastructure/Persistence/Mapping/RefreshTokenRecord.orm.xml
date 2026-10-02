@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping https://www.doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
+    <entity name="App\Authentication\Infrastructure\Persistence\Entity\RefreshTokenRecord" table="authentication.refresh_token">
+        <id name="id" type="guid" column="id"/>
+        <field name="familyId" type="guid" column="family_id"/>
+        <field name="accountId" type="guid" column="account_id"/>
+        <field name="hash" type="string" length="64" unique="true"/>
+        <field name="issuedAt" type="datetimetz_immutable" column="issued_at"/>
+        <field name="expiresAt" type="datetimetz_immutable" column="expires_at"/>
+        <field name="rotatedAt" type="datetimetz_immutable" column="rotated_at" nullable="true"/>
+        <field name="revokedAt" type="datetimetz_immutable" column="revoked_at" nullable="true"/>
+        <field name="replacedBy" type="guid" column="replaced_by" nullable="true"/>
+        <field name="version" type="integer" version="true"/>
+        <indexes>
+            <index name="idx_refresh_token_family" columns="family_id"/>
+            <index name="idx_refresh_token_account" columns="account_id"/>
+            <index name="idx_refresh_token_expires" columns="expires_at"/>
+        </indexes>
+    </entity>
+</doctrine-mapping>

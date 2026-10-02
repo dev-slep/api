@@ -98,6 +98,18 @@ final class OpenApiTest extends TestCase
         self::assertCount(1, $this->violations('GET', '/api/v1/things/abc', 204, 'application/json', '{}'));
     }
 
+    public function testReusableResponsesAreFollowed(): void
+    {
+        self::assertSame([], $this->violations('GET', '/api/v1/widgets', 409, 'application/problem+json', '{"type": "t", "title": "Conflict", "status": 409}'));
+        self::assertNotSame([], $this->violations('GET', '/api/v1/widgets', 409, 'application/problem+json', '{"title": "Conflict"}'));
+        self::assertSame(['Content type "application/json" is not documented for the 409 response of GET /api/v1/widgets.'], $this->violations('GET', '/api/v1/widgets', 409, 'application/json', '{}'));
+    }
+
+    public function testAReferenceToAMissingReusableResponseIsReported(): void
+    {
+        self::assertSame(['The response reference "#/components/responses/Missing" cannot be resolved.'], $this->violations('GET', '/api/v1/widgets', 418, 'application/json', '{}'));
+    }
+
     public function testInvalidJsonBodyIsReported(): void
     {
         $violations = $this->violations('GET', '/api/v1/things/abc', 200, 'application/json', '{not json');

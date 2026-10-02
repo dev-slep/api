@@ -34,6 +34,33 @@ final class BusesTest extends TestCase
         (new MessengerCommandBus($inner))->dispatch($command);
     }
 
+    public function testCommandBusReturnsTheHandlersResult(): void
+    {
+        $command = new RecordingCommand('x');
+        $inner = self::createStub(MessageBusInterface::class);
+        $inner->method('dispatch')->willReturn(new Envelope($command, [new HandledStamp(['tokens' => 2], 'handler')]));
+
+        self::assertSame(['tokens' => 2], (new MessengerCommandBus($inner))->dispatch($command));
+    }
+
+    public function testCommandBusReturnsNullWhenTheHandlerReturnsNothing(): void
+    {
+        $command = new RecordingCommand('x');
+        $inner = self::createStub(MessageBusInterface::class);
+        $inner->method('dispatch')->willReturn(new Envelope($command, [new HandledStamp(null, 'handler')]));
+
+        self::assertNull((new MessengerCommandBus($inner))->dispatch($command));
+    }
+
+    public function testCommandBusReturnsNullWhenNoHandlerLeftAStamp(): void
+    {
+        $command = new RecordingCommand('x');
+        $inner = self::createStub(MessageBusInterface::class);
+        $inner->method('dispatch')->willReturn(new Envelope($command));
+
+        self::assertNull((new MessengerCommandBus($inner))->dispatch($command));
+    }
+
     public function testCommandBusRethrowsTheOriginalException(): void
     {
         $command = new RecordingCommand('x');

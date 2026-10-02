@@ -1,0 +1,57 @@
+framework:
+    rate_limiter:
+        auth_login_ip:
+            policy: sliding_window
+            limit: '%auth.rate_limit.login_ip%'
+            interval: '1 minute'
+            storage_service: auth.rate_limiter_storage
+        auth_login_email:
+            policy: sliding_window
+            limit: '%auth.rate_limit.login_email%'
+            interval: '1 minute'
+            storage_service: auth.rate_limiter_storage
+        auth_register_ip:
+            policy: sliding_window
+            limit: '%auth.rate_limit.register_ip%'
+            interval: '1 hour'
+            storage_service: auth.rate_limiter_storage
+        auth_password_ip:
+            policy: sliding_window
+            limit: '%auth.rate_limit.password_ip%'
+            interval: '1 hour'
+            storage_service: auth.rate_limiter_storage
+        auth_password_email:
+            policy: sliding_window
+            limit: '%auth.rate_limit.password_email%'
+            interval: '1 hour'
+            storage_service: auth.rate_limiter_storage
+        auth_email_ip:
+            policy: sliding_window
+            limit: '%auth.rate_limit.email_ip%'
+            interval: '1 hour'
+            storage_service: auth.rate_limiter_storage
+        auth_email_email:
+            policy: sliding_window
+            limit: '%auth.rate_limit.email_email%'
+            interval: '1 hour'
+            storage_service: auth.rate_limiter_storage
+        auth_social_ip:
+            policy: sliding_window
+            limit: '%auth.rate_limit.social_ip%'
+            interval: '1 minute'
+            storage_service: auth.rate_limiter_storage
+        auth_token_ip:
+            policy: sliding_window
+            limit: '%auth.rate_limit.token_ip%'
+            interval: '1 hour'
+            storage_service: auth.rate_limiter_storage
+        auth_two_factor_account:
+            policy: sliding_window
+            limit: '%auth.rate_limit.two_factor_account%'
+            interval: '1 minute'
+            storage_service: auth.rate_limiter_storage
+        auth_two_factor_ip:
+            policy: sliding_window
+            limit: '%auth.rate_limit.two_factor_ip%'
+            interval: '1 minute'
+            storage_service: auth.rate_limiter_storage

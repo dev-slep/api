@@ -20,6 +20,13 @@ paths:
                 $ref: '#/components/schemas/ProblemDetails'
         '204':
           description: No content
+  /api/v1/widgets:
+    get:
+      responses:
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '418':
+          $ref: '#/components/responses/Missing'
   /api/v1/things:
     post:
       responses:
@@ -30,6 +37,13 @@ paths:
               schema:
                 type: object
 components:
+  responses:
+    Conflict:
+      description: Conflict
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
   schemas:
     Money:
       type: object

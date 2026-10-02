@@ -43,6 +43,15 @@ Notes from setting the project up:
 - Secrets: the Symfony vault public key is committed; `config/secrets/prod/prod.decrypt.private.php` and `config/jwt/*.pem` are git-ignored.
 - The `minio/minio` and `minio/mc` images are no longer published; the stack uses Chainguard's builds (`cgr.dev/chainguard/minio`, `minio-client`).
 
+## Authentication
+
+Stateless JWT authentication (module `Authentication`, spec §7.1). Public endpoints are under `/api/v1/auth/*`; everything else under `/api/v1` needs `Authorization: Bearer <access token>`, and `/api/v1/admin/*` needs an admin token issued after the second factor.
+
+- **Keys and secrets:** `make jwt-keys` creates the RS256 key pair in `config/jwt/` (git-ignored). `AUTH_ENCRYPTION_KEY` (32 random bytes, base64: `openssl rand -base64 32`) encrypts the TOTP secrets at rest. The value in `.env` is for local development only; production must set its own. Social sign-in needs `GOOGLE_CLIENT_ID` and `APPLE_CLIENT_ID`; the verification and reset links in emails come from `AUTH_VERIFY_EMAIL_URL` and `AUTH_RESET_PASSWORD_URL`.
+- **First admin:** `bin/console app:auth:create-admin <email>` asks for a password (or reads it with `--password-from-stdin`), creates a verified admin and prints the authenticator URI. The admin confirms the first code with `POST /api/v1/admin/auth/2fa/enrol/confirm` (using the pending token from the password login) and logs in again with a code.
+- **Housekeeping:** `bin/console app:auth:purge-expired-tokens` deletes long-expired tokens; the scheduler runs it daily.
+- Until the Authorization module stores roles, the role an account registered with becomes its token role. Until Penalty keeps a blacklist, registration blocks no contact.
+
 ## Guard rails
 
 `make qa` enforces the architecture from the specification: Deptrac (layer and module boundaries), PHPStan at level max with no baseline, PHP CS Fixer (strict types, final classes), and the test policy (every endpoint, console command, contract method and public method has its required test). Details: [`src/README.md`](src/README.md) and [`tests/README.md`](tests/README.md).
@@ -63,3 +72,4 @@ One Postgres database, **one schema per module** (`tow_request`, `bidding`, …)
 - [Backend specification](../internal-docs/backend-specification.md)
 - [Business logic](../internal-docs/business-logic.md)
 - [Setup plan](../tasks/setup-plan.md)
+- [Authentication plan](../tasks/auth-plan.md)

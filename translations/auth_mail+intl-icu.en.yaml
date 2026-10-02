@@ -1,0 +1,8 @@
+email_verification:
+    subject: 'Confirm your email address'
+    text: "Welcome to Slep!\n\nConfirm your email address to start using your account:\n{link}\n\nThe link works once and expires in 24 hours. If you did not create an account, ignore this message."
+    html: '<p>Welcome to Slep!</p><p>Confirm your email address to start using your account:</p><p><a href="{link}">Confirm email address</a></p><p>The link works once and expires in 24 hours. If you did not create an account, ignore this message.</p>'
+password_reset:
+    subject: 'Reset your password'
+    text: "We received a request to reset your Slep password.\n\nChoose a new password here:\n{link}\n\nThe link works once and expires in 1 hour. If you did not ask for this, ignore this message: your password stays the same."
+    html: '<p>We received a request to reset your Slep password.</p><p><a href="{link}">Choose a new password</a></p><p>The link works once and expires in 1 hour. If you did not ask for this, ignore this message: your password stays the same.</p>'
