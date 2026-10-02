@@ -1,0 +1,3 @@
+# Messaging/
+
+Messenger adapters. `MessengerCommandBus`/`QueryBus`/`EventBus` implement the Application buses. Middleware order matters: `TransactionMiddleware` (one DB transaction per command), `OutboxMiddleware` (integration events are stored in the same transaction and published after commit), `AuditMiddleware` (reports commands to `CommandAuditor`, `NullCommandAuditor` by default), `CorrelationMiddleware`. `UnwrapsHandlerFailure` rethrows the handler's own exception instead of Messenger's wrapper. `CollectedAggregateEvents` gathers events from saved aggregates.
