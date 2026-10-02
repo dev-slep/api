@@ -10,4 +10,5 @@ return [
     Symfony\Bundle\TwigBundle\TwigBundle::class => ['dev' => true, 'test' => true],
     Nelmio\ApiDocBundle\NelmioApiDocBundle::class => ['dev' => true, 'test' => true],
     Symfony\Bundle\SecurityBundle\SecurityBundle::class => ['all' => true],
+    Nelmio\CorsBundle\NelmioCorsBundle::class => ['all' => true],
 ];

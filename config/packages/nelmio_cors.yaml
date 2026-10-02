@@ -1,0 +1,17 @@
+# The web app (S3 + CloudFront) is served from another origin than the API, so browsers need CORS.
+# Native apps are not affected. Only /api/ is opened, and only to the origins in CORS_ALLOW_ORIGIN
+# (a regular expression, set per environment: .env has the local default, production sets the real domain).
+# Requests are authenticated with a bearer token in a header, never a cookie, so credentials stay off.
+nelmio_cors:
+    # Every path that is not listed under `paths` uses these: no origin is allowed there.
+    defaults:
+        allow_origin: []
+    paths:
+        '^/api/':
+            origin_regex: true
+            allow_origin: ['%env(CORS_ALLOW_ORIGIN)%']
+            allow_methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS']
+            allow_headers: ['Content-Type', 'Authorization', 'Accept', 'Accept-Language', 'Idempotency-Key']
+            # Readable by the web app: how long to wait after a 429, and whether a POST was replayed.
+            expose_headers: ['Retry-After', 'Idempotency-Replayed']
+            max_age: 3600

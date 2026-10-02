@@ -15,6 +15,7 @@
         "jsor/doctrine-postgis": "^2.4",
         "lcobucci/jwt": "^5.6",
         "nelmio/api-doc-bundle": "^5.12",
+        "nelmio/cors-bundle": "^2.6",
         "spomky-labs/otphp": "^11.5",
         "symfony/console": "^8.1",
         "symfony/doctrine-messenger": "^8.1",
