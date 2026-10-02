@@ -20,12 +20,12 @@ final class FakeSocialIdentityVerifier implements SocialIdentityVerifier
     /** @var array<string, VerifiedSocialIdentity> */
     private array $tokens = [];
 
-    public function trust(string $idToken, SocialProvider $provider, string $subject, string $email, bool $emailVerified = true): void
+    public function trust(string $idToken, SocialProvider $provider, string $subject, string $email, bool $emailVerified = true, bool $privateRelayEmail = false): void
     {
-        $this->tokens[$provider->value.':'.$idToken] = new VerifiedSocialIdentity(new SocialIdentity($provider, new SocialSubject($subject)), new Email($email), $emailVerified);
+        $this->tokens[$provider->value.':'.$idToken] = new VerifiedSocialIdentity(new SocialIdentity($provider, new SocialSubject($subject)), new Email($email), $emailVerified, $privateRelayEmail);
     }
 
-    public function verify(SocialProvider $provider, string $idToken): VerifiedSocialIdentity
+    public function verify(SocialProvider $provider, string $idToken, string $nonce): VerifiedSocialIdentity
     {
         return $this->tokens[$provider->value.':'.$idToken] ?? throw AuthenticationProblem::socialTokenInvalid();
     }

@@ -32,6 +32,9 @@ final class SocialTokens
     public const string GOOGLE_AUDIENCE = 'google-client-id.apps.googleusercontent.com';
     public const string APPLE_AUDIENCE = 'com.slep.app';
 
+    /** The raw nonce the tests send; the tokens carry its SHA-256 digest */
+    public const string NONCE = 'test-nonce-0123456789abcdef';
+
     private ?OpenSSLAsymmetricKey $rotatedKey = null;
 
     public function __construct(private readonly FrozenClock $clock)
@@ -127,6 +130,7 @@ final class SocialTokens
             ->issuedAt($this->clock->now())
             ->expiresAt($this->clock->now()->modify($expiresIn))
             ->withHeader('kid', $keyId)
+            ->withClaim('nonce', hash('sha256', self::NONCE))
             ->withClaim('email', $email)
             ->withClaim('email_verified', $emailVerified)
             ->getToken(new Sha256(), InMemory::plainText($pem))

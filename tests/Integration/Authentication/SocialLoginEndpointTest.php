@@ -34,7 +34,7 @@ final class SocialLoginEndpointTest extends AuthenticationIntegrationTestCase
     {
         $email = $this->uniqueEmail('soc');
 
-        $response = $this->call('POST', '/api/v1/auth/social/google', ['idToken' => $this->tokens->google($email, 'g-'.$email), 'role' => 'TOWER', 'phone' => '+381641234567']);
+        $response = $this->call('POST', '/api/v1/auth/social/google', ['nonce' => SocialTokens::NONCE, 'idToken' => $this->tokens->google($email, 'g-'.$email), 'role' => 'TOWER', 'phone' => '+381641234567']);
 
         self::assertSame(200, $response->getStatusCode(), (string) $response->getContent());
         self::assertMatchesOpenApiSchema($response, 'POST', '/api/v1/auth/social/google');
@@ -54,9 +54,9 @@ final class SocialLoginEndpointTest extends AuthenticationIntegrationTestCase
     {
         $email = $this->uniqueEmail('soc');
         $token = $this->tokens->apple($email, 'a-'.$email);
-        $this->call('POST', '/api/v1/auth/social/apple', ['idToken' => $token, 'role' => 'DRIVER']);
+        $this->call('POST', '/api/v1/auth/social/apple', ['nonce' => SocialTokens::NONCE, 'idToken' => $token, 'role' => 'DRIVER']);
 
-        $response = $this->call('POST', '/api/v1/auth/social/apple', ['idToken' => $this->tokens->apple($email, 'a-'.$email)]);
+        $response = $this->call('POST', '/api/v1/auth/social/apple', ['nonce' => SocialTokens::NONCE, 'idToken' => $this->tokens->apple($email, 'a-'.$email)]);
 
         self::assertSame(200, $response->getStatusCode());
         self::assertSame(1, $this->countRows('authentication.user_account', 'email = :email', ['email' => $email]));
@@ -67,7 +67,7 @@ final class SocialLoginEndpointTest extends AuthenticationIntegrationTestCase
         $account = $this->createAccount();
         $email = $account->email()->toString();
 
-        $response = $this->call('POST', '/api/v1/auth/social/google', ['idToken' => $this->tokens->google($email, 'g-link')]);
+        $response = $this->call('POST', '/api/v1/auth/social/google', ['nonce' => SocialTokens::NONCE, 'idToken' => $this->tokens->google($email, 'g-link')]);
 
         self::assertSame(200, $response->getStatusCode(), (string) $response->getContent());
         self::assertSame(1, $this->countRows('authentication.social_identity', 'account_id = :id', ['id' => $account->id()->toString()]));
@@ -79,7 +79,7 @@ final class SocialLoginEndpointTest extends AuthenticationIntegrationTestCase
         $account = $this->createAccount(verified: false, password: 'attacker password');
         $email = $account->email()->toString();
 
-        $linked = $this->call('POST', '/api/v1/auth/social/google', ['idToken' => $this->tokens->google($email, 'g-owner')]);
+        $linked = $this->call('POST', '/api/v1/auth/social/google', ['nonce' => SocialTokens::NONCE, 'idToken' => $this->tokens->google($email, 'g-owner')]);
         $attacker = $this->call('POST', '/api/v1/auth/login', ['email' => $email, 'password' => 'attacker password']);
 
         self::assertSame(200, $linked->getStatusCode(), (string) $linked->getContent());
@@ -91,7 +91,7 @@ final class SocialLoginEndpointTest extends AuthenticationIntegrationTestCase
     {
         $account = $this->createAccount();
 
-        $response = $this->call('POST', '/api/v1/auth/social/google', ['idToken' => $this->tokens->google($account->email()->toString(), 'g-evil', emailVerified: false)]);
+        $response = $this->call('POST', '/api/v1/auth/social/google', ['nonce' => SocialTokens::NONCE, 'idToken' => $this->tokens->google($account->email()->toString(), 'g-evil', emailVerified: false)]);
 
         self::assertSame(409, $response->getStatusCode());
         self::assertMatchesOpenApiSchema($response, 'POST', '/api/v1/auth/social/google');
@@ -102,7 +102,7 @@ final class SocialLoginEndpointTest extends AuthenticationIntegrationTestCase
     {
         $email = $this->uniqueEmail('soc');
 
-        $response = $this->call('POST', '/api/v1/auth/social/apple', ['idToken' => $this->tokens->apple($email, 'a-unverified', emailVerified: false), 'role' => 'DRIVER', 'locale' => 'en']);
+        $response = $this->call('POST', '/api/v1/auth/social/apple', ['nonce' => SocialTokens::NONCE, 'idToken' => $this->tokens->apple($email, 'a-unverified', emailVerified: false), 'role' => 'DRIVER', 'locale' => 'en']);
 
         self::assertSame(403, $response->getStatusCode());
         self::assertSame('https://slep.example/problems/email-not-verified', $this->json()['type']);
@@ -114,7 +114,7 @@ final class SocialLoginEndpointTest extends AuthenticationIntegrationTestCase
     {
         $email = $this->uniqueEmail('soc');
 
-        $response = $this->call('POST', '/api/v1/auth/social/google', ['idToken' => $this->tokens->google($email, 'g-norole')]);
+        $response = $this->call('POST', '/api/v1/auth/social/google', ['nonce' => SocialTokens::NONCE, 'idToken' => $this->tokens->google($email, 'g-norole')]);
 
         self::assertSame(422, $response->getStatusCode());
         self::assertSame('https://slep.example/problems/social-role-required', $this->json()['type']);
@@ -125,7 +125,7 @@ final class SocialLoginEndpointTest extends AuthenticationIntegrationTestCase
     {
         $admin = $this->createAdminWithSecondFactor();
 
-        $response = $this->call('POST', '/api/v1/auth/social/google', ['idToken' => $this->tokens->google($admin['email'], 'g-admin')]);
+        $response = $this->call('POST', '/api/v1/auth/social/google', ['nonce' => SocialTokens::NONCE, 'idToken' => $this->tokens->google($admin['email'], 'g-admin')]);
 
         self::assertSame(403, $response->getStatusCode());
         self::assertSame(0, $this->countRows('authentication.social_identity'));
@@ -144,7 +144,7 @@ final class SocialLoginEndpointTest extends AuthenticationIntegrationTestCase
         ];
 
         foreach ($cases as $name => $token) {
-            $response = $this->call('POST', '/api/v1/auth/social/google', ['idToken' => $token, 'role' => 'DRIVER']);
+            $response = $this->call('POST', '/api/v1/auth/social/google', ['nonce' => SocialTokens::NONCE, 'idToken' => $token, 'role' => 'DRIVER']);
             self::assertSame(401, $response->getStatusCode(), $name);
             self::assertMatchesOpenApiSchema($response, 'POST', '/api/v1/auth/social/google');
             self::assertSame('https://slep.example/problems/social-token-invalid', $this->json()['type'], $name);
@@ -156,15 +156,15 @@ final class SocialLoginEndpointTest extends AuthenticationIntegrationTestCase
     {
         $email = $this->uniqueEmail('soc');
 
-        $response = $this->call('POST', '/api/v1/auth/social/google', ['idToken' => $this->tokens->google($email, 'g-edge', expiresIn: '+1 second'), 'role' => 'DRIVER']);
+        $response = $this->call('POST', '/api/v1/auth/social/google', ['nonce' => SocialTokens::NONCE, 'idToken' => $this->tokens->google($email, 'g-edge', expiresIn: '+1 second'), 'role' => 'DRIVER']);
 
         self::assertSame(200, $response->getStatusCode());
     }
 
     public function testTheProvidersKeysAreFetchedOnceAndCached(): void
     {
-        $this->call('POST', '/api/v1/auth/social/google', ['idToken' => $this->tokens->google($this->uniqueEmail('soc'), 'g-c1'), 'role' => 'DRIVER']);
-        $this->call('POST', '/api/v1/auth/social/google', ['idToken' => $this->tokens->google($this->uniqueEmail('soc'), 'g-c2'), 'role' => 'DRIVER']);
+        $this->call('POST', '/api/v1/auth/social/google', ['nonce' => SocialTokens::NONCE, 'idToken' => $this->tokens->google($this->uniqueEmail('soc'), 'g-c1'), 'role' => 'DRIVER']);
+        $this->call('POST', '/api/v1/auth/social/google', ['nonce' => SocialTokens::NONCE, 'idToken' => $this->tokens->google($this->uniqueEmail('soc'), 'g-c2'), 'role' => 'DRIVER']);
 
         self::assertTrue($this->wireMock()->verify(['method' => 'GET', 'urlPath' => '/google/jwks'], 1));
     }
@@ -173,7 +173,7 @@ final class SocialLoginEndpointTest extends AuthenticationIntegrationTestCase
     {
         $this->wireMock()->stubFor(['priority' => 1, 'request' => ['method' => 'GET', 'urlPath' => '/google/jwks'], 'response' => ['status' => 500, 'body' => 'down']]);
 
-        $response = $this->call('POST', '/api/v1/auth/social/google', ['idToken' => $this->tokens->google($this->uniqueEmail('soc'), 'g-down'), 'role' => 'DRIVER']);
+        $response = $this->call('POST', '/api/v1/auth/social/google', ['nonce' => SocialTokens::NONCE, 'idToken' => $this->tokens->google($this->uniqueEmail('soc'), 'g-down'), 'role' => 'DRIVER']);
 
         self::assertSame(503, $response->getStatusCode());
         self::assertMatchesOpenApiSchema($response, 'POST', '/api/v1/auth/social/google');
@@ -188,7 +188,7 @@ final class SocialLoginEndpointTest extends AuthenticationIntegrationTestCase
             $this->wireMock()->stubFor(['priority' => 1, 'request' => ['method' => 'GET', 'urlPath' => '/google/jwks'], 'response' => $responseStub]);
             static::getContainer()->get('cache.app')->clear();
 
-            $response = $this->call('POST', '/api/v1/auth/social/google', ['idToken' => $this->tokens->google($email, 'g-bad'), 'role' => 'DRIVER']);
+            $response = $this->call('POST', '/api/v1/auth/social/google', ['nonce' => SocialTokens::NONCE, 'idToken' => $this->tokens->google($email, 'g-bad'), 'role' => 'DRIVER']);
 
             self::assertSame(503, $response->getStatusCode(), json_encode($responseStub, JSON_THROW_ON_ERROR));
         }
@@ -199,18 +199,18 @@ final class SocialLoginEndpointTest extends AuthenticationIntegrationTestCase
     {
         $email = $this->uniqueEmail('soc');
         // The cache holds the old key set; the token is signed with a key the provider published since
-        $this->call('POST', '/api/v1/auth/social/google', ['idToken' => $this->tokens->google($this->uniqueEmail('soc'), 'g-warm'), 'role' => 'DRIVER']);
+        $this->call('POST', '/api/v1/auth/social/google', ['nonce' => SocialTokens::NONCE, 'idToken' => $this->tokens->google($this->uniqueEmail('soc'), 'g-warm'), 'role' => 'DRIVER']);
         $this->wireMock()->stubFor(['priority' => 1, 'request' => ['method' => 'GET', 'urlPath' => '/google/jwks'], 'response' => ['status' => 200, 'headers' => ['Content-Type' => 'application/json'], 'body' => json_encode($this->tokens->jwksWithAdditionalKey('rotated-in'), JSON_THROW_ON_ERROR)]]);
 
-        $response = $this->call('POST', '/api/v1/auth/social/google', ['idToken' => $this->tokens->google($email, 'g-rotated', keyId: 'rotated-in', signWith: 'rotated'), 'role' => 'DRIVER']);
+        $response = $this->call('POST', '/api/v1/auth/social/google', ['nonce' => SocialTokens::NONCE, 'idToken' => $this->tokens->google($email, 'g-rotated', keyId: 'rotated-in', signWith: 'rotated'), 'role' => 'DRIVER']);
 
         self::assertSame(200, $response->getStatusCode(), (string) $response->getContent());
     }
 
     public function testUnknownProvidersAreNotFoundAndBodiesAreValidated(): void
     {
-        self::assertSame(404, $this->call('POST', '/api/v1/auth/social/facebook', ['idToken' => 'x'])->getStatusCode());
-        foreach ([[], ['idToken' => ''], ['idToken' => str_repeat('a', 8193)], ['idToken' => 'x', 'role' => 'ADMIN'], ['idToken' => 'x', 'phone' => str_repeat('1', 33)], ['idToken' => 'x', 'locale' => 'EN']] as $body) {
+        self::assertSame(404, $this->call('POST', '/api/v1/auth/social/facebook', ['nonce' => SocialTokens::NONCE, 'idToken' => 'x'])->getStatusCode());
+        foreach ([[], ['nonce' => SocialTokens::NONCE, 'idToken' => ''], ['nonce' => SocialTokens::NONCE, 'idToken' => str_repeat('a', 8193)], ['nonce' => SocialTokens::NONCE, 'idToken' => 'x', 'role' => 'ADMIN'], ['nonce' => SocialTokens::NONCE, 'idToken' => 'x', 'phone' => str_repeat('1', 33)], ['nonce' => SocialTokens::NONCE, 'idToken' => 'x', 'locale' => 'EN']] as $body) {
             $response = $this->call('POST', '/api/v1/auth/social/google', $body);
             self::assertSame(422, $response->getStatusCode(), json_encode($body, JSON_THROW_ON_ERROR));
             self::assertMatchesOpenApiSchema($response, 'POST', '/api/v1/auth/social/google');
@@ -221,7 +221,7 @@ final class SocialLoginEndpointTest extends AuthenticationIntegrationTestCase
     {
         $limited = null;
         for ($i = 0; $i < 105 && null === $limited; ++$i) {
-            $response = $this->call('POST', '/api/v1/auth/social/google', ['idToken' => 'garbage']);
+            $response = $this->call('POST', '/api/v1/auth/social/google', ['nonce' => SocialTokens::NONCE, 'idToken' => 'garbage']);
             $limited = 429 === $response->getStatusCode() ? $response : null;
         }
 

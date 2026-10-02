@@ -222,7 +222,7 @@ paths:
       tags:
         - Authentication
       summary: 'Log in with a Google or Apple ID token'
-      description: 'Creates the account on first use (a role is required then) or links the identity to an account with the same provider-confirmed email.'
+      description: 'Creates the account on first use (a role is required then) or links the identity to an account with the same provider-confirmed email. The client generates a random `nonce`, passes its SHA-256 hex digest to the provider when signing in, and sends the raw value here.'
       operationId: post_auth_social_login
       parameters:
         -
@@ -506,11 +506,17 @@ components:
     SocialLoginBody:
       required:
         - idToken
+        - nonce
       properties:
         idToken:
           type: string
           default: ''
           maxLength: 8192
+        nonce:
+          type: string
+          default: ''
+          maxLength: 128
+          minLength: 16
         role:
           type:
             - string

@@ -32,6 +32,7 @@ use Symfony\Component\HttpClient\Response\MockResponse;
 final class SocialVerifierTest extends TestCase
 {
     private const string AUDIENCE = 'client-id.apps.googleusercontent.com';
+    private const string NONCE = 'raw-nonce-0123456789abcdef';
 
     private RsaKey $key;
     private FrozenClock $clock;
@@ -60,11 +61,31 @@ final class SocialVerifierTest extends TestCase
         string $keyId = 'key-1',
         ?RsaKey $signWith = null,
         bool $withKeyId = true,
+        ?string $nonce = null, // null: the digest of NONCE, '': no claim
+        bool $withExpiry = true,
+        bool $withIssuedAt = true,
+        ?DateTimeImmutable $issuedAt = null,
+        ?string $authorizedParty = null,
+        bool|string|null $privateEmail = null,
     ): string {
         $builder = Builder::new(new JoseEncoder(), ChainedFormatter::withUnixTimestampDates())
             ->issuedBy($issuer)
-            ->permittedFor(...(array) $audience)
-            ->expiresAt($expiresAt ?? $this->clock->now()->modify('+1 hour'));
+            ->permittedFor(...(array) $audience);
+        if ($withExpiry) {
+            $builder = $builder->expiresAt($expiresAt ?? $this->clock->now()->modify('+1 hour'));
+        }
+        if ($withIssuedAt) {
+            $builder = $builder->issuedAt($issuedAt ?? $this->clock->now());
+        }
+        if ('' !== $nonce) {
+            $builder = $builder->withClaim('nonce', $nonce ?? hash('sha256', self::NONCE));
+        }
+        if (null !== $authorizedParty) {
+            $builder = $builder->withClaim('azp', $authorizedParty);
+        }
+        if (null !== $privateEmail) {
+            $builder = $builder->withClaim('is_private_email', $privateEmail);
+        }
         if ($withKeyId) {
             $builder = $builder->withHeader('kid', $keyId);
         }
@@ -108,7 +129,7 @@ final class SocialVerifierTest extends TestCase
     private function assertRejected(JwksSocialIdentityVerifier $verifier, string $token): void
     {
         try {
-            $verifier->verify(SocialProvider::Google, $token);
+            $verifier->verify(SocialProvider::Google, $token, self::NONCE);
             self::fail('The token was accepted.');
         } catch (AuthenticationProblem $problem) {
             self::assertSame('social-token-invalid', $problem->problemSlug());
@@ -117,7 +138,7 @@ final class SocialVerifierTest extends TestCase
 
     public function testAValidTokenYieldsTheVerifiedIdentity(): void
     {
-        $identity = $this->verifier()->verify(SocialProvider::Google, $this->token());
+        $identity = $this->verifier()->verify(SocialProvider::Google, $this->token(), self::NONCE);
 
         self::assertSame(SocialProvider::Google, $identity->identity->provider);
         self::assertSame('google-subject-1', $identity->identity->subject->toString());
@@ -129,36 +150,95 @@ final class SocialVerifierTest extends TestCase
     {
         $verifier = $this->verifier();
 
-        $verifier->verify(SocialProvider::Google, $this->token());
-        $verifier->verify(SocialProvider::Google, $this->token());
+        $verifier->verify(SocialProvider::Google, $this->token(), self::NONCE);
+        $verifier->verify(SocialProvider::Google, $this->token(), self::NONCE);
 
         self::assertSame(['GET https://keys.test/google'], $this->requests);
     }
 
     public function testEmailVerifiedAsAStringIsUnderstood(): void
     {
-        self::assertTrue($this->verifier()->verify(SocialProvider::Google, $this->token(emailVerified: 'true'))->emailVerified);
-        self::assertFalse($this->verifier()->verify(SocialProvider::Google, $this->token(emailVerified: 'false'))->emailVerified);
-        self::assertFalse($this->verifier()->verify(SocialProvider::Google, $this->token(emailVerified: false))->emailVerified);
+        self::assertTrue($this->verifier()->verify(SocialProvider::Google, $this->token(emailVerified: 'true'), self::NONCE)->emailVerified);
+        self::assertFalse($this->verifier()->verify(SocialProvider::Google, $this->token(emailVerified: 'false'), self::NONCE)->emailVerified);
+        self::assertFalse($this->verifier()->verify(SocialProvider::Google, $this->token(emailVerified: false), self::NONCE)->emailVerified);
     }
 
     public function testAMissingEmailVerifiedClaimMeansNotVerified(): void
     {
-        self::assertFalse($this->verifier()->verify(SocialProvider::Google, $this->token(emailVerified: null))->emailVerified);
+        self::assertFalse($this->verifier()->verify(SocialProvider::Google, $this->token(emailVerified: null), self::NONCE)->emailVerified);
     }
 
     public function testBothGoogleIssuersAreAccepted(): void
     {
-        $identity = $this->verifier()->verify(SocialProvider::Google, $this->token(issuer: 'accounts.google.com'));
+        $identity = $this->verifier()->verify(SocialProvider::Google, $this->token(issuer: 'accounts.google.com'), self::NONCE);
 
         self::assertSame('google-subject-1', $identity->identity->subject->toString());
     }
 
     public function testAnyOfSeveralAudiencesMayMatch(): void
     {
-        $identity = $this->verifier()->verify(SocialProvider::Google, $this->token(audience: ['other-client', self::AUDIENCE]));
+        $identity = $this->verifier()->verify(SocialProvider::Google, $this->token(audience: ['other-client', self::AUDIENCE], authorizedParty: self::AUDIENCE), self::NONCE);
 
         self::assertSame('google-subject-1', $identity->identity->subject->toString());
+    }
+
+    public function testATokenWithoutTheExpectedNonceIsRejected(): void
+    {
+        $this->assertRejected($this->verifier(), $this->token(nonce: ''));
+        $this->assertRejected($this->verifier(), $this->token(nonce: hash('sha256', 'another-nonce-0123456789')));
+    }
+
+    public function testTheRawNonceInTheTokenIsNotAccepted(): void
+    {
+        $this->assertRejected($this->verifier(), $this->token(nonce: self::NONCE));
+    }
+
+    public function testAnEmptyNonceFromTheClientIsRejected(): void
+    {
+        $this->expectException(AuthenticationProblem::class);
+
+        $this->verifier()->verify(SocialProvider::Google, $this->token(), '');
+    }
+
+    public function testTheNonceDigestMayBeUpperCase(): void
+    {
+        $identity = $this->verifier()->verify(SocialProvider::Google, $this->token(nonce: strtoupper(hash('sha256', self::NONCE))), self::NONCE);
+
+        self::assertSame('google-subject-1', $identity->identity->subject->toString());
+    }
+
+    public function testATokenWithoutExpiryOrIssueTimeIsRejected(): void
+    {
+        $this->assertRejected($this->verifier(), $this->token(withExpiry: false));
+        $this->assertRejected($this->verifier(), $this->token(withIssuedAt: false));
+    }
+
+    public function testATokenIssuedInTheFutureIsRejectedBeyondTheSkew(): void
+    {
+        $this->assertRejected($this->verifier(), $this->token(issuedAt: $this->clock->now()->modify('+5 minutes')));
+
+        $identity = $this->verifier()->verify(SocialProvider::Google, $this->token(issuedAt: $this->clock->now()->modify('+30 seconds')), self::NONCE);
+        self::assertSame('google-subject-1', $identity->identity->subject->toString());
+    }
+
+    public function testTheAuthorizedPartyMustBeOneOfTheAppsClientIds(): void
+    {
+        $this->assertRejected($this->verifier(), $this->token(authorizedParty: 'someone-elses-client'));
+
+        $identity = $this->verifier()->verify(SocialProvider::Google, $this->token(authorizedParty: self::AUDIENCE), self::NONCE);
+        self::assertSame('google-subject-1', $identity->identity->subject->toString());
+    }
+
+    public function testSeveralAudiencesNeedAnAuthorizedParty(): void
+    {
+        $this->assertRejected($this->verifier(), $this->token(audience: ['other-client', self::AUDIENCE]));
+    }
+
+    public function testPrivateRelayEmailsAreFlagged(): void
+    {
+        self::assertTrue($this->verifier()->verify(SocialProvider::Google, $this->token(privateEmail: 'true'), self::NONCE)->privateRelayEmail);
+        self::assertFalse($this->verifier()->verify(SocialProvider::Google, $this->token(privateEmail: 'false'), self::NONCE)->privateRelayEmail);
+        self::assertFalse($this->verifier()->verify(SocialProvider::Google, $this->token(), self::NONCE)->privateRelayEmail);
     }
 
     public function testATokenForAnotherAppIsRejected(): void
@@ -179,7 +259,7 @@ final class SocialVerifierTest extends TestCase
 
     public function testATokenThatExpiresInASecondIsAccepted(): void
     {
-        $identity = $this->verifier()->verify(SocialProvider::Google, $this->token(expiresAt: $this->clock->now()->modify('+1 second')));
+        $identity = $this->verifier()->verify(SocialProvider::Google, $this->token(expiresAt: $this->clock->now()->modify('+1 second')), self::NONCE);
 
         self::assertSame('google-subject-1', $identity->identity->subject->toString());
     }
@@ -216,7 +296,7 @@ final class SocialVerifierTest extends TestCase
             fn (): MockResponse => new MockResponse((string) json_encode(['keys' => [$oldKey->jwk('old'), $this->key->jwk('key-1')]])),
         ]);
 
-        $identity = $verifier->verify(SocialProvider::Google, $this->token());
+        $identity = $verifier->verify(SocialProvider::Google, $this->token(), self::NONCE);
 
         self::assertSame('google-subject-1', $identity->identity->subject->toString());
         self::assertCount(2, $this->requests);
@@ -234,7 +314,7 @@ final class SocialVerifierTest extends TestCase
 
         $this->expectException(SocialProviderUnavailable::class);
 
-        $verifier->verify(SocialProvider::Google, $this->token());
+        $verifier->verify(SocialProvider::Google, $this->token(), self::NONCE);
     }
 
     public function testATimeoutIsReportedAsUnavailable(): void
@@ -243,7 +323,7 @@ final class SocialVerifierTest extends TestCase
 
         $this->expectException(SocialProviderUnavailable::class);
 
-        $verifier->verify(SocialProvider::Google, $this->token());
+        $verifier->verify(SocialProvider::Google, $this->token(), self::NONCE);
     }
 
     public function testMalformedKeySetsAreReportedAsUnavailable(): void
@@ -251,7 +331,7 @@ final class SocialVerifierTest extends TestCase
         foreach (['not json', '{"keys": "nope"}', '{"nokeys": []}', '{"keys": []}', '{"keys": [{"kty": "EC", "kid": "x"}]}', '{"keys": [{"kty": "RSA", "kid": "x", "n": "!!!", "e": "AQAB"}]}'] as $body) {
             $verifier = $this->verifier([static fn (): MockResponse => new MockResponse($body)]);
             try {
-                $verifier->verify(SocialProvider::Google, $this->token());
+                $verifier->verify(SocialProvider::Google, $this->token(), self::NONCE);
                 self::fail("Accepted key set: $body");
             } catch (SocialProviderUnavailable) {
                 $this->addToAssertionCount(1);
@@ -263,7 +343,7 @@ final class SocialVerifierTest extends TestCase
     {
         $this->expectException(AuthenticationProblem::class);
 
-        $this->verifier()->verify(SocialProvider::Apple, $this->token());
+        $this->verifier()->verify(SocialProvider::Apple, $this->token(), self::NONCE);
     }
 
     public function testProviderSettingsKeepTheirValues(): void

@@ -13,6 +13,7 @@ final readonly class VerifiedSocialIdentity
         public SocialIdentity $identity,
         public Email $email,
         public bool $emailVerified,
+        public bool $privateRelayEmail = false,
     ) {
     }
 }

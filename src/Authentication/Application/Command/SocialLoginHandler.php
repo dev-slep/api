@@ -56,7 +56,7 @@ final readonly class SocialLoginHandler implements CommandHandler
     public function __invoke(SocialLogin $command): AuthenticationResult
     {
         $provider = SocialProvider::tryFrom($command->provider) ?? throw InvalidValue::because('The social provider is not supported.');
-        $verified = $this->verifier->verify($provider, $command->idToken);
+        $verified = $this->verifier->verify($provider, $command->idToken, $command->nonce);
         $now = $this->clock->now();
 
         $account = $this->accounts->findBySocialIdentity($verified->identity);
@@ -140,7 +140,8 @@ final readonly class SocialLoginHandler implements CommandHandler
         if (AccountRole::Admin === $existing->role()) {
             throw AuthenticationProblem::adminSocialLoginForbidden();
         }
-        if (!$verified->emailVerified) {
+        // A private relay address is not a mailbox the account owner is known to read, so it never proves ownership
+        if (!$verified->emailVerified || $verified->privateRelayEmail) {
             throw AuthenticationProblem::emailAlreadyRegistered();
         }
 

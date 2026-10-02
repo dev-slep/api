@@ -188,11 +188,11 @@ final class AuthenticationFlowTest extends AuthenticationApplicationTestCase
     {
         $this->social->trust('google-id-token', \App\Authentication\Domain\Model\SocialProvider::Google, 'g-1', 'soc@example.com');
 
-        $response = $this->jsonRequest('POST', '/api/v1/auth/social/google', ['idToken' => 'google-id-token', 'role' => 'TOWER']);
+        $response = $this->jsonRequest('POST', '/api/v1/auth/social/google', ['nonce' => 'flow-test-nonce-0123456789', 'idToken' => 'google-id-token', 'role' => 'TOWER']);
 
         self::assertSame(200, $response->getStatusCode());
         self::assertArrayHasKey('refreshToken', $this->json());
-        self::assertSame(401, $this->jsonRequest('POST', '/api/v1/auth/social/google', ['idToken' => 'forged'])->getStatusCode());
+        self::assertSame(401, $this->jsonRequest('POST', '/api/v1/auth/social/google', ['nonce' => 'flow-test-nonce-0123456789', 'idToken' => 'forged'])->getStatusCode());
         self::assertSame(404, $this->jsonRequest('POST', '/api/v1/auth/social/facebook', ['idToken' => 'x'])->getStatusCode());
     }
 
@@ -255,7 +255,7 @@ final class AuthenticationFlowTest extends AuthenticationApplicationTestCase
         $commandBus->dispatch(new CreateAdmin('root@example.com', 'a long admin passphrase'));
         $this->social->trust('tok', \App\Authentication\Domain\Model\SocialProvider::Google, 'g-1', 'root@example.com');
 
-        self::assertSame(403, $this->jsonRequest('POST', '/api/v1/auth/social/google', ['idToken' => 'tok'])->getStatusCode());
+        self::assertSame(403, $this->jsonRequest('POST', '/api/v1/auth/social/google', ['nonce' => 'flow-test-nonce-0123456789', 'idToken' => 'tok'])->getStatusCode());
     }
 
     public function testUnknownMethodsAndMissingJsonAreRefused(): void

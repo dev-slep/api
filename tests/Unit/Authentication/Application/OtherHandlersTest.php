@@ -295,6 +295,20 @@ final class OtherHandlersTest extends TestCase
         self::assertTrue(($this->world->login())(new Login('ana@example.com', AuthenticationWorld::PASSWORD, $this->context))->isSuccess());
     }
 
+    public function testAPrivateRelayEmailIsNeverLinkedToAnExistingAccount(): void
+    {
+        $account = $this->world->verifiedAccount('relay@privaterelay.appleid.com');
+        $this->world->social->trust('tok', SocialProvider::Apple, 'a-1', 'relay@privaterelay.appleid.com', privateRelayEmail: true);
+
+        try {
+            ($this->world->socialLogin())(new SocialLogin('apple', 'tok', null, null, 'en', $this->context));
+            self::fail('The identity was linked.');
+        } catch (AuthenticationProblem $problem) {
+            self::assertSame('email-already-registered', $problem->problemSlug());
+        }
+        self::assertFalse($account->hasSocialIdentity(new SocialIdentity(SocialProvider::Apple, new SocialSubject('a-1'))));
+    }
+
     public function testAnEmailTheProviderDoesNotConfirmIsNeverLinkedToAnExistingAccount(): void
     {
         $account = $this->world->verifiedAccount('ana@example.com');

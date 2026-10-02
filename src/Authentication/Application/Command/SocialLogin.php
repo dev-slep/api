@@ -15,6 +15,7 @@ final readonly class SocialLogin implements Command
         public ?string $phone,
         public string $locale,
         public RequestContext $context,
+        public string $nonce = '',
     ) {
     }
 }

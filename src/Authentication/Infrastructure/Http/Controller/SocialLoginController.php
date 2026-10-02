@@ -31,7 +31,7 @@ final readonly class SocialLoginController
     ) {
     }
 
-    #[OA\Post(summary: 'Log in with a Google or Apple ID token', description: 'Creates the account on first use (a role is required then) or links the identity to an account with the same provider-confirmed email.', security: [])]
+    #[OA\Post(summary: 'Log in with a Google or Apple ID token', description: 'Creates the account on first use (a role is required then) or links the identity to an account with the same provider-confirmed email. The client generates a random `nonce`, passes its SHA-256 hex digest to the provider when signing in, and sends the raw value here.', security: [])]
     #[OA\Parameter(name: 'provider', in: 'path', required: true, description: 'The sign-in provider.', style: 'simple', explode: false, schema: new OA\Schema(type: 'string', enum: ['google', 'apple']))]
     #[OA\Tag(name: 'Authentication')]
     #[OA\Response(response: 200, description: 'Tokens.', content: new OA\JsonContent(ref: new Model(type: TokenResponse::class)))]
@@ -51,6 +51,7 @@ final readonly class SocialLoginController
             $body->phone,
             $body->locale ?? $request->getLocale(),
             $this->contexts->fromRequest($request),
+            $body->nonce,
         ));
         assert($result instanceof AuthenticationResult);
 
