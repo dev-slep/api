@@ -11,8 +11,9 @@ doctrine:
                 class: 'Jsor\Doctrine\PostGIS\Types\GeometryType'
 
         # PostGIS-owned objects must never show up in schema diffs
-        # (public.spatial_ref_sys, tiger.*, tiger_data.*, topology.*)
-        schema_filter: '~^(?!(public\.)?spatial_ref_sys$)(?!tiger\.)(?!tiger_data\.)(?!topology\.)~'
+        # (public.spatial_ref_sys, tiger.*, tiger_data.*, topology.*). Infrastructure tables that are used with
+        # plain SQL and have no mapping (<schema>.processed_event, authentication.rate_limit) are left out too.
+        schema_filter: '~^(?!(public\.)?spatial_ref_sys$)(?!tiger\.)(?!tiger_data\.)(?!topology\.)(?![a-z_]+\.processed_event$)(?!authentication\.rate_limit$)~'
 
     orm:
         # One XML mapping per module, in Infrastructure only; table names are schema-qualified

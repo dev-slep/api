@@ -17,6 +17,67 @@ when@dev: &documentation
                         type: http
                         scheme: bearer
                         bearerFormat: JWT
+                responses:
+                    BadRequest:
+                        description: The request could not be understood.
+                        content:
+                            application/problem+json:
+                                schema:
+                                    $ref: '#/components/schemas/ProblemDetails'
+                    Unauthorized:
+                        description: Missing, expired or invalid access token, or wrong credentials.
+                        headers:
+                            WWW-Authenticate:
+                                description: The authentication scheme to use.
+                                style: simple
+                                explode: false
+                                schema:
+                                    type: string
+                                    example: Bearer
+                        content:
+                            application/problem+json:
+                                schema:
+                                    $ref: '#/components/schemas/ProblemDetails'
+                    Forbidden:
+                        description: Authenticated, but not allowed to do this.
+                        content:
+                            application/problem+json:
+                                schema:
+                                    $ref: '#/components/schemas/ProblemDetails'
+                    Conflict:
+                        description: The request conflicts with the current state.
+                        content:
+                            application/problem+json:
+                                schema:
+                                    $ref: '#/components/schemas/ProblemDetails'
+                    ValidationFailed:
+                        description: The request body is malformed, fails validation (with the fields at fault in `errors`) or breaks a business rule.
+                        content:
+                            application/problem+json:
+                                schema:
+                                    anyOf:
+                                        - $ref: '#/components/schemas/ValidationProblem'
+                                        - $ref: '#/components/schemas/ProblemDetails'
+                    TooManyRequests:
+                        description: Rate limit exceeded.
+                        headers:
+                            Retry-After:
+                                description: Seconds to wait before trying again.
+                                style: simple
+                                explode: false
+                                schema:
+                                    type: integer
+                                    example: 30
+                        content:
+                            application/problem+json:
+                                schema:
+                                    $ref: '#/components/schemas/ProblemDetails'
+                    ServiceUnavailable:
+                        description: A third-party service this endpoint depends on is unavailable.
+                        content:
+                            application/problem+json:
+                                schema:
+                                    $ref: '#/components/schemas/ProblemDetails'
                 schemas:
                     Money:
                         type: object
@@ -74,8 +135,8 @@ when@dev: &documentation
                                                   example: This value should be positive.
         areas:
             default:
-                # Business endpoints only: excludes /api/doc, /health/* and the test fixtures
+                # Business endpoints only: excludes /api/doc, /health/* and the test fixtures (/api/v1/_test, /api/v1/admin/_test)
                 path_patterns:
-                    - ^/api/v1
+                    - ^/api/v1(?!/_test/|/admin/_test/)
 
 when@test: *documentation

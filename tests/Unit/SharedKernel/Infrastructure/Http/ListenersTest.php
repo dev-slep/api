@@ -18,6 +18,8 @@ use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\Exception\UnsupportedMediaTypeHttpException;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
+use Symfony\Component\Security\Core\Exception\AccessDeniedException;
+use Symfony\Component\Security\Core\Exception\AuthenticationException;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 #[CoversClass(ApiPath::class)]
@@ -157,6 +159,18 @@ final class ListenersTest extends TestCase
 
         self::assertSame(404, $event->getResponse()?->getStatusCode());
         self::assertSame('application/problem+json', $event->getResponse()->headers->get('Content-Type'));
+    }
+
+    public function testProblemListenerLeavesSecurityExceptionsToTheFirewall(): void
+    {
+        foreach ([new AccessDeniedException(), new AuthenticationException()] as $failure) {
+            $request = Request::create('/api/v1/x');
+            $event = new ExceptionEvent(self::createStub(HttpKernelInterface::class), $request, HttpKernelInterface::MAIN_REQUEST, $failure);
+
+            $this->problemListener()->onException($event);
+
+            self::assertNull($event->getResponse(), $failure::class.' must reach the firewall\'s entry point and access denied handler');
+        }
     }
 
     public function testProblemListenerLeavesOtherPathsAlone(): void

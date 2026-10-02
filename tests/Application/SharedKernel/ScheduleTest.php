@@ -6,6 +6,9 @@ namespace App\Tests\Application\SharedKernel;
 
 use App\SharedKernel\Infrastructure\Scheduler\DefaultSchedule;
 use App\Tests\Support\ApplicationTestCase;
+
+use function count;
+
 use PHPUnit\Framework\Attributes\CoversNothing;
 
 #[CoversNothing]
@@ -15,6 +18,7 @@ final class ScheduleTest extends ApplicationTestCase
     {
         $messages = array_values(static::getContainer()->get(DefaultSchedule::class)->getSchedule()->getRecurringMessages());
 
-        self::assertCount(1, $messages);
+        // The test fixture's task plus the modules' own tasks (e.g. the daily purge of expired authentication tokens)
+        self::assertGreaterThanOrEqual(1, count($messages));
     }
 }

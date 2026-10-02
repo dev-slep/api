@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping https://www.doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
+    <entity name="App\Authentication\Infrastructure\Persistence\Entity\OneTimeTokenRecord" table="authentication.one_time_token">
+        <id name="id" type="guid" column="id"/>
+        <field name="accountId" type="guid" column="account_id"/>
+        <field name="purpose" type="string" length="32"/>
+        <field name="hash" type="string" length="64"/>
+        <field name="issuedAt" type="datetimetz_immutable" column="issued_at"/>
+        <field name="expiresAt" type="datetimetz_immutable" column="expires_at"/>
+        <field name="usedAt" type="datetimetz_immutable" column="used_at" nullable="true"/>
+        <field name="invalidatedAt" type="datetimetz_immutable" column="invalidated_at" nullable="true"/>
+        <unique-constraints>
+            <unique-constraint name="uniq_one_time_token_hash" columns="purpose,hash"/>
+        </unique-constraints>
+        <indexes>
+            <index name="idx_one_time_token_account" columns="account_id,purpose"/>
+            <index name="idx_one_time_token_expires" columns="expires_at"/>
+        </indexes>
+    </entity>
+</doctrine-mapping>

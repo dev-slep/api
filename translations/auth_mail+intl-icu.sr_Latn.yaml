@@ -1,0 +1,8 @@
+email_verification:
+    subject: 'Potvrdite svoju e-poštu'
+    text: "Dobrodošli u Slep!\n\nPotvrdite svoju e-poštu da biste počeli da koristite nalog:\n{link}\n\nLink važi jednom i ističe za 24 sata. Ako niste napravili nalog, ignorišite ovu poruku."
+    html: '<p>Dobrodošli u Slep!</p><p>Potvrdite svoju e-poštu da biste počeli da koristite nalog:</p><p><a href="{link}">Potvrdi e-poštu</a></p><p>Link važi jednom i ističe za 24 sata. Ako niste napravili nalog, ignorišite ovu poruku.</p>'
+password_reset:
+    subject: 'Promena lozinke'
+    text: "Primili smo zahtev za promenu Slep lozinke.\n\nIzaberite novu lozinku ovde:\n{link}\n\nLink važi jednom i ističe za 1 sat. Ako niste tražili promenu, ignorišite ovu poruku: lozinka ostaje ista."
+    html: '<p>Primili smo zahtev za promenu Slep lozinke.</p><p><a href="{link}">Izaberite novu lozinku</a></p><p>Link važi jednom i ističe za 1 sat. Ako niste tražili promenu, ignorišite ovu poruku: lozinka ostaje ista.</p>'

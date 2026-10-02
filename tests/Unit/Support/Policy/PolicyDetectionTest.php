@@ -86,7 +86,7 @@ final class PolicyDetectionTest extends TestCase
     {
         self::assertSame('GET /x', (new CoversEndpoint('get', '/x'))->key());
         self::assertSame('stdClass::bar', (new CoversContractMethod(stdClass::class, 'bar'))->key());
-        self::assertSame('app:x', (new CoversConsoleCommand('app:x'))->name);
+        self::assertSame('slep:x', (new CoversConsoleCommand('slep:x'))->name);
     }
 
     private function policy(): TestPolicy

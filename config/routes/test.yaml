@@ -3,3 +3,8 @@ when@test:
     fixtures_http:
         resource: '../../tests/Support/Fixtures/Http/FixtureHttpController.php'
         type: attribute
+
+    # Test-only routes under the protected /api/v1 prefix (tests/Support/Fixtures/Http)
+    fixtures_protected:
+        resource: '../../tests/Support/Fixtures/Http/ProtectedFixtureController.php'
+        type: attribute

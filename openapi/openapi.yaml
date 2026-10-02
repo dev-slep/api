@@ -7,7 +7,340 @@ servers:
   -
     url: /
     description: 'Application root; every path already starts with /api/v1'
-paths: {}
+paths:
+  /api/v1/admin/auth/2fa/enrol/confirm:
+    post:
+      tags:
+        - 'Admin authentication'
+      summary: 'Confirm two-factor enrolment with a first code'
+      description: 'Returns the single-use recovery codes, shown once.'
+      operationId: post_admin_auth_2fa_enrol_confirm
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CodeBody'
+      responses:
+        '200':
+          description: 'The recovery codes.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecoveryCodesResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+      security:
+        -
+          bearerAuth: []
+  /api/v1/auth/password/forgot:
+    post:
+      tags:
+        - Authentication
+      summary: 'Request a password reset email'
+      description: 'Always answers 202, whether or not the email belongs to an account.'
+      operationId: post_auth_password_forgot
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmailBody'
+      responses:
+        '202':
+          description: 'If the account exists, a reset link was sent.'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      security: []
+  /api/v1/auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: 'Log in with email and password'
+      description: 'Returns access and refresh tokens. Admins get a token that only opens the two-factor endpoints (`twoFactorRequired: true`). The email must be verified.'
+      operationId: post_auth_login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginBody'
+      responses:
+        '200':
+          description: 'Tokens, or a two-factor-pending token for admins.'
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - { $ref: '#/components/schemas/TokenResponse' }
+                  - { $ref: '#/components/schemas/TwoFactorRequiredResponse' }
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      security: []
+  /api/v1/auth/logout:
+    post:
+      tags:
+        - Authentication
+      summary: 'Revoke a refresh token family'
+      description: 'Idempotent: an unknown or already revoked token is ignored. `allDevices` revokes every session of the account.'
+      operationId: post_auth_logout
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LogoutBody'
+      responses:
+        '204':
+          description: 'Logged out.'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+      security: []
+  /api/v1/auth/refresh:
+    post:
+      tags:
+        - Authentication
+      summary: 'Exchange a refresh token for new tokens'
+      description: 'The refresh token is single-use. Presenting one that was already used revokes the whole session family.'
+      operationId: post_auth_refresh
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshBody'
+      responses:
+        '200':
+          description: 'New tokens.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+      security: []
+  /api/v1/auth/register:
+    post:
+      tags:
+        - Authentication
+      summary: 'Register a driver or tower account'
+      description: 'Creates an unverified account and emails a verification link. No tokens are issued: the email has to be verified before the first login.'
+      operationId: post_auth_register
+      parameters:
+        -
+          name: Idempotency-Key
+          in: header
+          description: 'Makes the request safe to retry: the same key with the same body replays the first response.'
+          required: false
+          style: simple
+          explode: false
+          schema:
+            type: string
+            maxLength: 255
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterBody'
+      responses:
+        '201':
+          description: 'The account was created.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      security: []
+  /api/v1/auth/email/resend:
+    post:
+      tags:
+        - Authentication
+      summary: 'Send the verification email again'
+      description: 'Always answers 202, whether or not the email belongs to an unverified account. Earlier links stop working.'
+      operationId: post_auth_email_resend
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmailBody'
+      responses:
+        '202':
+          description: 'If an unverified account exists, a new link was sent.'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      security: []
+  /api/v1/auth/password/reset:
+    post:
+      tags:
+        - Authentication
+      summary: 'Set a new password with a reset token'
+      description: 'The token works once. All sessions of the account end.'
+      operationId: post_auth_password_reset
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResetPasswordBody'
+      responses:
+        '204':
+          description: 'Password changed.'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      security: []
+  '/api/v1/auth/social/{provider}':
+    post:
+      tags:
+        - Authentication
+      summary: 'Log in with a Google or Apple ID token'
+      description: 'Creates the account on first use (a role is required then) or links the identity to an account with the same provider-confirmed email. The client generates a random `nonce`, passes its SHA-256 hex digest to the provider when signing in, and sends the raw value here.'
+      operationId: post_auth_social_login
+      parameters:
+        -
+          name: provider
+          in: path
+          description: 'The sign-in provider.'
+          required: true
+          style: simple
+          explode: false
+          schema:
+            type: string
+            pattern: google|apple
+            enum:
+              - google
+              - apple
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SocialLoginBody'
+      responses:
+        '200':
+          description: Tokens.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+      security: []
+  /api/v1/admin/auth/2fa/enrol:
+    post:
+      tags:
+        - 'Admin authentication'
+      summary: 'Start two-factor enrolment'
+      description: 'Returns a new secret and the otpauth URI. Refused once the enrolment is confirmed.'
+      operationId: post_admin_auth_2fa_enrol
+      responses:
+        '200':
+          description: 'The secret, shown once.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnrolmentResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+      security:
+        -
+          bearerAuth: []
+  /api/v1/auth/email/verify:
+    post:
+      tags:
+        - Authentication
+      summary: 'Confirm an email address'
+      description: 'The token from the verification email works once.'
+      operationId: post_auth_email_verify
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenBody'
+      responses:
+        '204':
+          description: 'Email verified.'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      security: []
+  /api/v1/admin/auth/2fa/verify:
+    post:
+      tags:
+        - 'Admin authentication'
+      summary: 'Complete the admin login with a TOTP or recovery code'
+      description: 'Needs the two-factor-pending token from the password login.'
+      operationId: post_admin_auth_2fa_verify
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CodeBody'
+      responses:
+        '200':
+          description: 'Admin tokens.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      security:
+        -
+          bearerAuth: []
 components:
   schemas:
     Money:
@@ -70,9 +403,284 @@ components:
                   message: { type: string, example: 'This value should be positive.' }
                 type: object
           type: object
+    CodeBody:
+      required:
+        - code
+      properties:
+        code:
+          type: string
+          default: ''
+          maxLength: 32
+      type: object
+    EmailBody:
+      required:
+        - email
+      properties:
+        email:
+          type: string
+          default: ''
+          maxLength: 254
+      type: object
+    LoginBody:
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          default: ''
+          maxLength: 254
+        password:
+          type: string
+          default: ''
+          maxLength: 128
+      type: object
+    LogoutBody:
+      required:
+        - refreshToken
+      properties:
+        refreshToken:
+          type: string
+          default: ''
+          maxLength: 256
+        allDevices:
+          type: boolean
+          default: false
+      type: object
+    RefreshBody:
+      required:
+        - refreshToken
+      properties:
+        refreshToken:
+          type: string
+          default: ''
+          maxLength: 256
+      type: object
+    RegisterBody:
+      required:
+        - email
+        - password
+        - role
+      properties:
+        email:
+          type: string
+          default: ''
+          maxLength: 254
+        password:
+          type: string
+          default: ''
+          maxLength: 128
+        role:
+          type: string
+          default: ''
+          enum:
+            - DRIVER
+            - TOWER
+        phone:
+          type:
+            - string
+            - 'null'
+          default: null
+          maxLength: 32
+        locale:
+          type:
+            - string
+            - 'null'
+          pattern: '[a-z]{2}(_[A-Za-z]{2,4})?'
+          default: null
+      type: object
+    ResetPasswordBody:
+      required:
+        - token
+        - newPassword
+      properties:
+        token:
+          type: string
+          default: ''
+          maxLength: 256
+        newPassword:
+          type: string
+          default: ''
+          maxLength: 128
+      type: object
+    SocialLoginBody:
+      required:
+        - idToken
+        - nonce
+      properties:
+        idToken:
+          type: string
+          default: ''
+          maxLength: 8192
+        nonce:
+          type: string
+          default: ''
+          maxLength: 128
+          minLength: 16
+        role:
+          type:
+            - string
+            - 'null'
+          default: null
+          enum:
+            - DRIVER
+            - TOWER
+        phone:
+          type:
+            - string
+            - 'null'
+          default: null
+          maxLength: 32
+        locale:
+          type:
+            - string
+            - 'null'
+          pattern: '[a-z]{2}(_[A-Za-z]{2,4})?'
+          default: null
+      type: object
+    TokenBody:
+      required:
+        - token
+      properties:
+        token:
+          type: string
+          default: ''
+          maxLength: 256
+      type: object
+    RecoveryCodesResponse:
+      required:
+        - recoveryCodes
+      properties:
+        recoveryCodes:
+          type: array
+          items:
+            type: string
+      type: object
+    TokenResponse:
+      required:
+        - accessToken
+        - refreshToken
+        - expiresIn
+        - tokenType
+      properties:
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+        expiresIn:
+          type: integer
+        tokenType:
+          type: string
+          default: Bearer
+      type: object
+    TwoFactorRequiredResponse:
+      required:
+        - accessToken
+        - expiresIn
+        - twoFactorRequired
+        - tokenType
+      properties:
+        accessToken:
+          type: string
+        expiresIn:
+          type: integer
+        twoFactorRequired:
+          type: boolean
+        tokenType:
+          type: string
+          default: Bearer
+      type: object
+    RegisterResponse:
+      required:
+        - email
+        - emailVerificationRequired
+      properties:
+        email:
+          type: string
+        emailVerificationRequired:
+          type: boolean
+      type: object
+    EnrolmentResponse:
+      required:
+        - secret
+        - provisioningUri
+      properties:
+        secret:
+          type: string
+        provisioningUri:
+          type: string
+      type: object
+  responses:
+    BadRequest:
+      description: 'The request could not be understood.'
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+    Unauthorized:
+      description: 'Missing, expired or invalid access token, or wrong credentials.'
+      headers:
+        WWW-Authenticate:
+          description: 'The authentication scheme to use.'
+          style: simple
+          explode: false
+          schema:
+            type: string
+            example: Bearer
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+    Forbidden:
+      description: 'Authenticated, but not allowed to do this.'
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+    Conflict:
+      description: 'The request conflicts with the current state.'
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+    ValidationFailed:
+      description: 'The request body is malformed, fails validation (with the fields at fault in `errors`) or breaks a business rule.'
+      content:
+        application/problem+json:
+          schema:
+            anyOf:
+              -
+                $ref: '#/components/schemas/ValidationProblem'
+              -
+                $ref: '#/components/schemas/ProblemDetails'
+    TooManyRequests:
+      description: 'Rate limit exceeded.'
+      headers:
+        Retry-After:
+          description: 'Seconds to wait before trying again.'
+          style: simple
+          explode: false
+          schema:
+            type: integer
+            example: 30
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+    ServiceUnavailable:
+      description: 'A third-party service this endpoint depends on is unavailable.'
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
   securitySchemes:
     bearerAuth:
       type: http
       bearerFormat: JWT
       scheme: bearer
+tags:
+  -
+    name: 'Admin authentication'
+  -
+    name: Authentication
 

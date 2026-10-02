@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping https://www.doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
+    <entity name="App\Authentication\Infrastructure\Persistence\Entity\SocialIdentityRecord" table="authentication.social_identity">
+        <id name="provider" type="string" length="16"/>
+        <id name="subject" type="string" length="255"/>
+        <many-to-one field="account" target-entity="App\Authentication\Infrastructure\Persistence\Entity\UserAccountRecord" inversed-by="socialIdentities">
+            <join-column name="account_id" referenced-column-name="id" nullable="false" on-delete="CASCADE"/>
+        </many-to-one>
+        <indexes>
+            <index name="idx_social_identity_account" columns="account_id"/>
+        </indexes>
+    </entity>
+</doctrine-mapping>

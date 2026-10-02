@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping https://www.doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
+    <entity name="App\Authentication\Infrastructure\Persistence\Entity\UserAccountRecord" table="authentication.user_account">
+        <id name="id" type="guid" column="id"/>
+        <field name="email" type="string" length="254" unique="true"/>
+        <field name="passwordHash" type="string" column="password_hash" length="255" nullable="true"/>
+        <field name="role" type="string" length="16"/>
+        <field name="phone" type="string" length="32" nullable="true"/>
+        <field name="locale" type="string" length="16"/>
+        <field name="emailVerifiedAt" type="datetimetz_immutable" column="email_verified_at" nullable="true"/>
+        <field name="status" type="string" length="16"/>
+        <field name="registeredAt" type="datetimetz_immutable" column="registered_at"/>
+        <field name="passwordChangedAt" type="datetimetz_immutable" column="password_changed_at" nullable="true"/>
+        <one-to-many field="socialIdentities" target-entity="App\Authentication\Infrastructure\Persistence\Entity\SocialIdentityRecord" mapped-by="account" orphan-removal="true">
+            <cascade>
+                <cascade-persist/>
+                <cascade-remove/>
+            </cascade>
+        </one-to-many>
+    </entity>
+</doctrine-mapping>

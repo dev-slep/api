@@ -1,0 +1,27 @@
+security:
+    # Authentication is stateless: the access token (JWT) carries the user, nothing is loaded from the database
+    providers:
+        jwt:
+            id: App\Authentication\Infrastructure\Security\JwtUserProvider
+
+    firewalls:
+        dev:
+            # Dev tools and static assets are never protected
+            pattern: ^/(_profiler|_wdt|assets|build)/
+            security: false
+        api:
+            pattern: ^/api/
+            stateless: true
+            provider: jwt
+            custom_authenticators:
+                - App\Authentication\Infrastructure\Security\JwtAuthenticator
+            entry_point: App\Authentication\Infrastructure\Security\ProblemEntryPoint
+            access_denied_handler: App\Authentication\Infrastructure\Security\ProblemEntryPoint
+
+    # The first matching rule wins. Everything under /api/v1 needs a valid token unless it is listed as public.
+    # A token that is only "second factor pending" has no roles, so it opens nothing but the 2FA endpoints.
+    access_control:
+        - { path: '^/api/v1/auth/(register|login|social/|refresh|logout|password/|email/)', roles: PUBLIC_ACCESS }
+        - { path: '^/api/v1/admin/auth/2fa/', roles: IS_AUTHENTICATED }
+        - { path: '^/api/v1/admin', roles: ROLE_ADMIN }
+        - { path: '^/api/v1', roles: IS_AUTHENTICATED }

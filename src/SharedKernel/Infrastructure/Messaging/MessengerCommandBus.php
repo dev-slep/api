@@ -8,6 +8,7 @@ use App\SharedKernel\Application\Command;
 use App\SharedKernel\Application\CommandBus;
 use Symfony\Component\Messenger\Exception\HandlerFailedException;
 use Symfony\Component\Messenger\MessageBusInterface;
+use Symfony\Component\Messenger\Stamp\HandledStamp;
 
 final readonly class MessengerCommandBus implements CommandBus
 {
@@ -18,12 +19,14 @@ final readonly class MessengerCommandBus implements CommandBus
     {
     }
 
-    public function dispatch(Command $command): void
+    public function dispatch(Command $command): mixed
     {
         try {
-            $this->commandBus->dispatch($command);
+            $envelope = $this->commandBus->dispatch($command);
         } catch (HandlerFailedException $failure) {
             throw $this->unwrap($failure);
         }
+
+        return $envelope->last(HandledStamp::class)?->getResult();
     }
 }

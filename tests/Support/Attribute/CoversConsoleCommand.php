@@ -7,7 +7,7 @@ namespace App\Tests\Support\Attribute;
 use Attribute;
 
 /**
- * Declares which console command an integration test covers, e.g. `#[CoversConsoleCommand('app:cleanup')]`.
+ * Declares which console command an integration test covers, e.g. `#[CoversConsoleCommand('slep:cleanup')]`.
  */
 #[Attribute(Attribute::TARGET_CLASS | Attribute::IS_REPEATABLE)]
 final readonly class CoversConsoleCommand

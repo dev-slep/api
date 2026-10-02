@@ -42,6 +42,9 @@ abstract class ApplicationTestCase extends WebTestCase
 
     protected KernelBrowser $client;
 
+    /** The clock in the container: tests move time with it. */
+    protected FrozenClock $frozenClock;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -50,7 +53,8 @@ abstract class ApplicationTestCase extends WebTestCase
 
         static::ensureKernelShutdown();
         $this->client = static::createClient();
-        static::getContainer()->set(Clock::class, new FrozenClock());
+        $this->frozenClock = new FrozenClock();
+        static::getContainer()->set(Clock::class, $this->frozenClock);
         static::getContainer()->set(IdGenerator::class, new SequentialIdGenerator());
         static::getContainer()->set(Transaction::class, new NullTransaction());
         $this->replaceServices(static::getContainer());

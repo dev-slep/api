@@ -14,6 +14,7 @@ use Opis\JsonSchema\Errors\ErrorFormatter;
 use Opis\JsonSchema\Validator;
 
 use function sprintf;
+use function strlen;
 
 /**
  * Validates a response (status, content type and JSON body) against the schema the OpenAPI document
@@ -60,7 +61,21 @@ final readonly class OpenApiResponseValidator
             return [sprintf('%s %s has no documented %d response.', strtoupper($method), $pathKey, $status)];
         }
 
-        $content = $this->property($this->property($responses, $statusKey), 'content');
+        $response = $this->property($responses, $statusKey);
+        $responsePointer = sprintf('#/paths/%s/%s/responses/%s', $this->escape($pathKey), $verb, $this->escape($statusKey));
+
+        // A response may be a reference to a reusable one in components/responses
+        $reference = $this->property($response, '$ref');
+        if (is_string($reference) && str_starts_with($reference, '#/components/responses/')) {
+            $name = substr($reference, strlen('#/components/responses/'));
+            $response = $this->property($this->property($this->property($this->document->spec, 'components'), 'responses'), $name);
+            if (!is_object($response)) {
+                return [sprintf('The response reference "%s" cannot be resolved.', $reference)];
+            }
+            $responsePointer = '#/components/responses/'.$this->escape($name);
+        }
+
+        $content = $this->property($response, 'content');
         if (!is_object($content) || [] === get_object_vars($content)) {
             return '' === $body ? [] : [sprintf('The %d response of %s %s is documented without a body, but one was returned.', $status, strtoupper($method), $pathKey)];
         }
@@ -80,13 +95,7 @@ final readonly class OpenApiResponseValidator
             return ['The response body is not valid JSON: '.$exception->getMessage()];
         }
 
-        $pointer = sprintf(
-            '#/paths/%s/%s/responses/%s/content/%s/schema',
-            $this->escape($pathKey),
-            $verb,
-            $this->escape($statusKey),
-            $this->escape($mediaType),
-        );
+        $pointer = sprintf('%s/content/%s/schema', $responsePointer, $this->escape($mediaType));
         $error = $this->validator->validate($data, self::DOCUMENT_ID.$pointer)->error();
 
         return null === $error ? [] : $this->messages((new ErrorFormatter())->formatFlat($error));
