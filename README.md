@@ -50,7 +50,7 @@ Stateless JWT authentication (module `Authentication`, spec §7.1). Public endpo
 - **Keys and secrets:** `make jwt-keys` creates the RS256 key pair in `config/jwt/` (git-ignored). `AUTH_ENCRYPTION_KEY` (32 random bytes, base64: `openssl rand -base64 32`) encrypts the TOTP secrets at rest. The value in `.env` is for local development only; production must set its own. Social sign-in needs `GOOGLE_CLIENT_ID` and `APPLE_CLIENT_ID`; the verification and reset links in emails open the web app, whose origin is `WEB_APP_URL` (one per environment, e.g. `http://localhost:8081` locally); add the same origin to `CORS_ALLOW_ORIGIN`.
 - **First admin:** `bin/console slep:auth:create-admin <email>` asks for a password (or reads it with `--password-from-stdin`), creates a verified admin and prints the authenticator URI. The admin confirms the first code with `POST /api/v1/admin/auth/2fa/enrol/confirm` (using the pending token from the password login) and logs in again with a code.
 - **Housekeeping:** `bin/console slep:auth:purge-expired-tokens` deletes long-expired tokens; the scheduler runs it daily.
-- Until the Authorization module stores roles, the role an account registered with becomes its token role. Until Penalty keeps a blacklist, registration blocks no contact.
+- Token roles come from the Authorization module (`RoleLookup`); the role an account registered with is only a fallback until Authorization has granted one. Until Penalty keeps a blacklist, registration blocks no contact.
 
 ## Guard rails
 

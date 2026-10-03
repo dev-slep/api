@@ -70,7 +70,6 @@ services:
     App\Authentication\Contract\AccountLookup: '@App\Authentication\Application\ContractImplementation\AccountLookupFacade'
     App\Authentication\Contract\CurrentUser: '@App\Authentication\Infrastructure\Security\SecurityCurrentUser'
     App\Penalty\Contract\BlacklistChecker: '@App\Penalty\Application\ContractImplementation\AllowAllBlacklistChecker'
-    App\Authorization\Contract\RoleLookup: '@App\Authorization\Application\ContractImplementation\NoRolesGrantedYet'
 
     App\Authentication\Domain\Policy\PasswordPolicy:
         arguments:
@@ -210,9 +209,6 @@ when@test:
             public: true
         App\Authentication\Contract\CurrentUser:
             alias: App\Authentication\Infrastructure\Security\SecurityCurrentUser
-            public: true
-        App\Authorization\Contract\RoleLookup:
-            alias: App\Authorization\Application\ContractImplementation\NoRolesGrantedYet
             public: true
         App\Penalty\Contract\BlacklistChecker:
             alias: App\Penalty\Application\ContractImplementation\AllowAllBlacklistChecker

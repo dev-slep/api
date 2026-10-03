@@ -88,7 +88,8 @@ final readonly class SessionFactory
     }
 
     /**
-     * The roles Authorization granted, or the role the account registered with while Authorization grants none.
+     * The roles Authorization granted, or the role the account registered with while it has granted none (before its
+     * subscriber has handled the registration event, and for accounts that registered before the module existed).
      *
      * @return list<string>
      */

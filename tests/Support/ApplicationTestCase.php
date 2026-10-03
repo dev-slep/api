@@ -6,6 +6,9 @@ namespace App\Tests\Support;
 
 use App\Audit\Domain\Repository\AuditEntryRepository;
 use App\Audit\Infrastructure\Persistence\InMemoryAuditEntryRepository;
+use App\Authorization\Domain\Repository\RoleAssignmentRepository;
+use App\Authorization\Infrastructure\Persistence\InMemoryRoleAssignmentRepository;
+use App\SharedKernel\Application\AggregateEventCollector;
 use App\SharedKernel\Application\Transaction;
 use App\SharedKernel\Domain\Clock;
 use App\SharedKernel\Domain\IdGenerator;
@@ -61,6 +64,8 @@ abstract class ApplicationTestCase extends WebTestCase
         static::getContainer()->set(Transaction::class, new NullTransaction());
         // Every command is audited; application tests never touch the database, so the log lives in memory
         static::getContainer()->set(AuditEntryRepository::class, new InMemoryAuditEntryRepository());
+        // Every account registered gets a role, and logging in reads it: the assignments live in memory too
+        static::getContainer()->set(RoleAssignmentRepository::class, new InMemoryRoleAssignmentRepository(static::getContainer()->get(AggregateEventCollector::class)));
         $this->replaceServices(static::getContainer());
     }
 

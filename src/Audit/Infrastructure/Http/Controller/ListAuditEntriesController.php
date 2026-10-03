@@ -10,6 +10,7 @@ use App\Audit\Contract\Dto\AuditEntryView;
 use App\Audit\Infrastructure\Http\Request\AuditEntryQuery;
 use App\Audit\Infrastructure\Http\Response\AuditEntryResponse;
 use App\Audit\Infrastructure\Http\Response\AuditPageResponse;
+use App\Authorization\Contract\Permission;
 use App\SharedKernel\Application\QueryBus;
 
 use function assert;
@@ -22,8 +23,10 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Attribute\AsController;
 use Symfony\Component\HttpKernel\Attribute\MapQueryString;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[AsController]
+#[IsGranted(Permission::ReadAuditLog->value)]
 final readonly class ListAuditEntriesController
 {
     public function __construct(private QueryBus $queryBus)

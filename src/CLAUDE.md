@@ -22,4 +22,4 @@ Rules (Deptrac enforces them, `make deptrac`):
 
 Quality gate for any change: `make qa` (cs, phpstan max, deptrac, test-policy, all suites). The test policy requires tests for every public method, endpoint, console command and contract method (see `tests/CLAUDE.md`).
 
-Modules: Audit, Authentication (built), Authorization, Bidding, Driver, Job, Notification, Penalty, Review, Subscription, TowRequest, Tower. Responsibilities are in `../../internal-docs/backend-specification.md` §6.
+Modules: Audit, Authentication (built), Authorization (built), Bidding, Driver, Job, Notification, Penalty, Review, Subscription, TowRequest, Tower. Responsibilities are in `../../internal-docs/backend-specification.md` §6.

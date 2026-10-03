@@ -80,6 +80,16 @@ final class AuditEndpointTest extends AuthenticationIntegrationTestCase
         self::assertSame(401, $this->call('GET', '/api/v1/admin/audit')->getStatusCode());
     }
 
+    public function testAnAdminWhoHasNotFinishedTheSecondFactorMayNotReadTheLog(): void
+    {
+        $clock = $this->freezeClock('2026-01-01T12:00:10+00:00');
+        $admin = $this->createAdminWithSecondFactor();
+        $clock->advance('+30 seconds');
+        $pending = $this->jsonString('accessToken', $this->call('POST', '/api/v1/auth/login', ['email' => $admin['email'], 'password' => self::PASSWORD]));
+
+        self::assertSame(403, $this->call('GET', '/api/v1/admin/audit', headers: $this->bearer($pending))->getStatusCode());
+    }
+
     public function testADriverMayNotReadTheLog(): void
     {
         $driver = $this->login($this->createAccount()->email()->toString());

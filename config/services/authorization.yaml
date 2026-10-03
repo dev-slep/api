@@ -13,8 +13,39 @@ services:
             - '../../src/Authorization/Contract/Event/'
             - '../../src/Authorization/Infrastructure/Persistence/Entity/'
 
+    # --- Ports with several implementations: the real ones are wired here ---
+    App\Authorization\Domain\Repository\RoleAssignmentRepository: '@App\Authorization\Infrastructure\Persistence\DbalRoleAssignmentRepository'
+    App\Authorization\Contract\RoleLookup: '@App\Authorization\Application\ContractImplementation\RoleLookupFacade'
+    App\Authorization\Contract\AccessDecider: '@App\Authorization\Application\ContractImplementation\AccessDeciderFacade'
+
+    # --- Event subscribers (event bus) ---
+    authorization.processed_events:
+        class: App\Authorization\Infrastructure\Persistence\AuthorizationProcessedEvents
+
+    authorization.idempotent_handling:
+        class: App\SharedKernel\Application\IdempotentHandling
+        arguments:
+            $processedEvents: '@authorization.processed_events'
+
+    App\Authorization\Infrastructure\Messaging\GrantRoleOnRegistrationSubscriber:
+        arguments:
+            $idempotent: '@authorization.idempotent_handling'
+        tags:
+            - { name: messenger.message_handler, bus: event.bus, handles: App\Authentication\Contract\Event\UserRegisteredV1 }
+
 when@test:
     services:
         _defaults:
             autowire: true
             autoconfigure: true
+
+        # Public so that application tests can swap them for in-memory implementations and fakes
+        App\Authorization\Domain\Repository\RoleAssignmentRepository:
+            alias: App\Authorization\Infrastructure\Persistence\DbalRoleAssignmentRepository
+            public: true
+        App\Authorization\Contract\RoleLookup:
+            alias: App\Authorization\Application\ContractImplementation\RoleLookupFacade
+            public: true
+        App\Authorization\Contract\AccessDecider:
+            alias: App\Authorization\Application\ContractImplementation\AccessDeciderFacade
+            public: true
