@@ -109,8 +109,9 @@ services:
         arguments:
             $fromAddress: '%env(AUTH_MAIL_FROM_ADDRESS)%'
             $fromName: '%env(AUTH_MAIL_FROM_NAME)%'
-            $verificationUrlTemplate: '%env(AUTH_VERIFY_EMAIL_URL)%'
-            $resetUrlTemplate: '%env(AUTH_RESET_PASSWORD_URL)%'
+            # The web app resolves both links (routes /verify-email and /reset-password); {token} is replaced by the token
+            $verificationUrlTemplate: '%env(WEB_APP_URL)%/verify-email?token={token}'
+            $resetUrlTemplate: '%env(WEB_APP_URL)%/reset-password?token={token}'
 
     App\Authentication\Infrastructure\Social\JwksSocialIdentityVerifier:
         arguments:

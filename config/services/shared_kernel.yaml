@@ -65,9 +65,6 @@ when@test:
         App\SharedKernel\Application\Transaction:
             alias: App\SharedKernel\Infrastructure\Persistence\DoctrineTransaction
             public: true
-        App\SharedKernel\Application\CommandAuditor:
-            alias: App\SharedKernel\Infrastructure\Messaging\NullCommandAuditor
-            public: true
         App\SharedKernel\Application\CommandBus:
             alias: App\SharedKernel\Infrastructure\Messaging\MessengerCommandBus
             public: true

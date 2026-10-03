@@ -71,7 +71,7 @@ migration: ## Generate a migration for one module (m=TowRequest)
 		echo "Unknown module '$(m)'. Modules: $(MODULES)"; exit 1; \
 	fi
 	$(eval SCHEMA := $(shell echo '$(m)' | sed -E 's/([a-z0-9])([A-Z])/\1_\2/g' | tr '[:upper:]' '[:lower:]'))
-	$(CONSOLE) doctrine:migrations:diff -n --namespace='Migrations\$(m)' --filter-expression='/^$(SCHEMA)\.(?!processed_event$$|rate_limit$$)/'
+	$(CONSOLE) doctrine:migrations:diff -n --namespace='Migrations\$(m)' --filter-expression='/^$(SCHEMA)\.(?!processed_event$$|rate_limit$$|audit_entry$$)/'
 
 db-reset: db-drop db-create ## Drop, create and migrate the dev and test databases
 	$(CONSOLE) doctrine:migrations:migrate -n --allow-no-migration

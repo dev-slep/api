@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Tests\Support;
 
+use App\Audit\Domain\Repository\AuditEntryRepository;
+use App\Audit\Infrastructure\Persistence\InMemoryAuditEntryRepository;
 use App\SharedKernel\Application\Transaction;
 use App\SharedKernel\Domain\Clock;
 use App\SharedKernel\Domain\IdGenerator;
@@ -57,6 +59,8 @@ abstract class ApplicationTestCase extends WebTestCase
         static::getContainer()->set(Clock::class, $this->frozenClock);
         static::getContainer()->set(IdGenerator::class, new SequentialIdGenerator());
         static::getContainer()->set(Transaction::class, new NullTransaction());
+        // Every command is audited; application tests never touch the database, so the log lives in memory
+        static::getContainer()->set(AuditEntryRepository::class, new InMemoryAuditEntryRepository());
         $this->replaceServices(static::getContainer());
     }
 

@@ -11,10 +11,45 @@ services:
             - '../../src/Audit/Domain/Exception/'
             - '../../src/Audit/Contract/Dto/'
             - '../../src/Audit/Contract/Event/'
+            - '../../src/Audit/Application/Query/ListAuditEntries.php'
             - '../../src/Audit/Infrastructure/Persistence/Entity/'
+            - '../../src/Audit/Infrastructure/Http/Request/'
+            - '../../src/Audit/Infrastructure/Http/Response/'
+
+    # --- Ports with several implementations: the real ones are wired here ---
+    App\Audit\Domain\Repository\AuditEntryRepository: '@App\Audit\Infrastructure\Persistence\DbalAuditEntryRepository'
+    App\Audit\Contract\AuditTrail: '@App\Audit\Application\ContractImplementation\AuditTrailFacade'
+    # Replaces the null auditor the SharedKernel falls back to: every command is audited
+    App\SharedKernel\Application\CommandAuditor: '@App\Audit\Infrastructure\Messaging\AuditCommandAuditor'
+
+    # --- Event subscriber (event bus): every integration event of every module ---
+    audit.processed_events:
+        class: App\Audit\Infrastructure\Persistence\AuditProcessedEvents
+
+    audit.idempotent_handling:
+        class: App\SharedKernel\Application\IdempotentHandling
+        arguments:
+            $processedEvents: '@audit.processed_events'
+
+    App\Audit\Infrastructure\Messaging\RecordIntegrationEventSubscriber:
+        arguments:
+            $idempotent: '@audit.idempotent_handling'
+        tags:
+            - { name: messenger.message_handler, bus: event.bus, handles: App\SharedKernel\Contract\IntegrationEvent }
 
 when@test:
     services:
         _defaults:
             autowire: true
             autoconfigure: true
+
+        # Public so that application tests can swap them for in-memory implementations and fakes
+        App\Audit\Domain\Repository\AuditEntryRepository:
+            alias: App\Audit\Infrastructure\Persistence\DbalAuditEntryRepository
+            public: true
+        App\Audit\Contract\AuditTrail:
+            alias: App\Audit\Application\ContractImplementation\AuditTrailFacade
+            public: true
+        App\SharedKernel\Application\CommandAuditor:
+            alias: App\Audit\Infrastructure\Messaging\AuditCommandAuditor
+            public: true

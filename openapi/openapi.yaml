@@ -341,6 +341,129 @@ paths:
       security:
         -
           bearerAuth: []
+  /api/v1/admin/audit:
+    get:
+      tags:
+        - Audit
+      summary: 'Read the audit log'
+      description: 'Newest first. Filters are combined with AND; `from` and `to` are ISO 8601 timestamps.'
+      operationId: get_admin_audit_list
+      parameters:
+        -
+          name: actorId
+          in: query
+          description: 'Only entries of this user (UUID).'
+          required: false
+          allowEmptyValue: false
+          style: form
+          explode: false
+          allowReserved: false
+          schema:
+            type: string
+            format: uuid
+        -
+          name: targetId
+          in: query
+          description: 'Only entries about this target (aggregate id).'
+          required: false
+          allowEmptyValue: false
+          style: form
+          explode: false
+          allowReserved: false
+          schema:
+            type: string
+            maxLength: 64
+        -
+          name: name
+          in: query
+          description: 'Command name (`RegisterUser`) or event name (`authentication.user_logged_in.v1`).'
+          required: false
+          allowEmptyValue: false
+          style: form
+          explode: false
+          allowReserved: false
+          schema:
+            type: string
+            maxLength: 160
+        -
+          name: kind
+          in: query
+          required: false
+          allowEmptyValue: false
+          style: form
+          explode: false
+          allowReserved: false
+          schema:
+            type: string
+            enum:
+              - command
+              - event
+        -
+          name: from
+          in: query
+          description: 'Not before this moment (ISO 8601).'
+          required: false
+          allowEmptyValue: false
+          style: form
+          explode: false
+          allowReserved: false
+          schema:
+            type: string
+            format: date-time
+        -
+          name: to
+          in: query
+          description: 'Not after this moment (ISO 8601).'
+          required: false
+          allowEmptyValue: false
+          style: form
+          explode: false
+          allowReserved: false
+          schema:
+            type: string
+            format: date-time
+        -
+          name: page
+          in: query
+          description: 'Starts at 1.'
+          required: false
+          allowEmptyValue: false
+          style: form
+          explode: false
+          allowReserved: false
+          schema:
+            type: integer
+            default: 1
+            minimum: 1
+        -
+          name: perPage
+          in: query
+          required: false
+          allowEmptyValue: false
+          style: form
+          explode: false
+          allowReserved: false
+          schema:
+            type: integer
+            default: 50
+            maximum: 100
+            minimum: 1
+      responses:
+        '200':
+          description: 'One page of audit entries.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuditPageResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+      security:
+        -
+          bearerAuth: []
 components:
   schemas:
     Money:
@@ -547,6 +670,55 @@ components:
           default: ''
           maxLength: 256
       type: object
+    AuditEntryQuery:
+      properties:
+        actorId:
+          type:
+            - string
+            - 'null'
+          default: null
+        targetId:
+          type:
+            - string
+            - 'null'
+          default: null
+          maxLength: 64
+        name:
+          type:
+            - string
+            - 'null'
+          default: null
+          maxLength: 160
+        kind:
+          type:
+            - string
+            - 'null'
+          default: null
+          enum:
+            - command
+            - event
+        from:
+          type:
+            - string
+            - 'null'
+          format: date-time
+          default: null
+        to:
+          type:
+            - string
+            - 'null'
+          format: date-time
+          default: null
+        page:
+          type: integer
+          default: 1
+          exclusiveMinimum: 0
+        perPage:
+          type: integer
+          default: 50
+          maximum: 100
+          minimum: 1
+      type: object
     RecoveryCodesResponse:
       required:
         - recoveryCodes
@@ -609,6 +781,89 @@ components:
           type: string
         provisioningUri:
           type: string
+      type: object
+    AuditEntryResponse:
+      required:
+        - id
+        - occurredAt
+        - kind
+        - name
+        - actorType
+        - payload
+        - outcome
+      properties:
+        id:
+          type: string
+        occurredAt:
+          type: string
+        kind:
+          type: string
+          enum:
+            - command
+            - event
+        name:
+          type: string
+        actorType:
+          type: string
+          enum:
+            - user
+            - anonymous
+            - system
+        actorId:
+          type:
+            - string
+            - 'null'
+        actorRole:
+          type:
+            - string
+            - 'null'
+        targetId:
+          type:
+            - string
+            - 'null'
+        payload:
+          type: object
+          additionalProperties: true
+        outcome:
+          type: string
+          enum:
+            - success
+            - failure
+            - recorded
+        failureReason:
+          type:
+            - string
+            - 'null'
+        correlationId:
+          type:
+            - string
+            - 'null'
+        ip:
+          type:
+            - string
+            - 'null'
+        userAgent:
+          type:
+            - string
+            - 'null'
+      type: object
+    AuditPageResponse:
+      required:
+        - items
+        - page
+        - perPage
+        - total
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/AuditEntryResponse'
+        page:
+          type: integer
+        perPage:
+          type: integer
+        total:
+          type: integer
       type: object
   responses:
     BadRequest:
@@ -683,4 +938,6 @@ tags:
     name: 'Admin authentication'
   -
     name: Authentication
+  -
+    name: Audit
 

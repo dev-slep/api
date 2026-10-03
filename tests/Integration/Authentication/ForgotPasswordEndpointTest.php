@@ -27,7 +27,7 @@ final class ForgotPasswordEndpointTest extends AuthenticationIntegrationTestCase
         $mails = $this->mailsTo($email);
         self::assertCount(1, $mails);
         self::assertSame('Reset your password', $mails[0]['subject']);
-        self::assertStringContainsString('/reset-password?token=', $mails[0]['text']);
+        self::assertStringContainsString('https://app.test.example/reset-password?token=', $mails[0]['text']);
         self::assertSame(1, $this->countRows('authentication.one_time_token', "purpose = 'PASSWORD_RESET' AND account_id = :id", ['id' => $account->id()->toString()]));
         $this->assertEventStored(PasswordResetRequestedV1::class);
     }

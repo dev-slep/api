@@ -67,7 +67,7 @@ final class RegisterEndpointTest extends AuthenticationIntegrationTestCase
         $mails = $this->mailsTo($this->emailOf($body));
         self::assertCount(1, $mails);
         self::assertSame('Confirm your email address', $mails[0]['subject']);
-        self::assertStringContainsString('/verify-email?token=', $mails[0]['text']);
+        self::assertStringContainsString('https://app.test.example/verify-email?token=', $mails[0]['text']);
     }
 
     public function testTheMailIsInTheLanguageOfTheAccount(): void
